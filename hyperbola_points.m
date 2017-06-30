@@ -26,31 +26,48 @@ x = linspace(lower_x,upper_x,density);
 y = linspace(lower_y,upper_y,density);
 
 if type == 1 % if using a horizontal hyperbola
+    if a == 0
+        xdata_1(1:length(y)) = xmid;
+        xdata_2 = xdata_1;
+    else
     A = (1/a^2);
+    
     B = -((2 * xmid)/a^2);
+    
     C = ((xmid^2)/a^2 - ((y - ymid).^2) ./ (b^2) - 1);
     % solve regular quadratic equation
     dicriminant = B.^2 - 4*A.*C;
+    
     xdata_1 = (-B - sqrt(dicriminant))./(2*A);
     xdata_2 = (-B + sqrt(dicriminant))./(2*A);
-    xdata_1(dicriminant < 0) = nan;
-    xdata_2(dicriminant < 0) = nan;
-    y(dicriminant < 0) = nan;
+%         xdata_1(dicriminant < 0) = nan;
+%         xdata_2(dicriminant < 0) = nan;
+    end
+%     y(dicriminant < 0) = nan;
     yvalue = [y,nan,y];
     xvalue = [xdata_1,nan,xdata_2]; 
     
     
 else % if using a vertical hyperbola
-    A = (1/a^2);
-    B = -((2 * ymid)/a^2);
-    C = ((ymid^2)/a^2 - ((x - xmid).^2) ./ (b^2) - 1);
-    % solve regular quadratic equation
-    dicriminant = B.^2 - 4*A.*C;
-    xdata_1 = (-B - sqrt(dicriminant))./(2*A);
-    xdata_2 = (-B + sqrt(dicriminant))./(2*A);
-    xdata_1(dicriminant < 0) = nan;
-    xdata_2(dicriminant < 0) = nan;
-    x(dicriminant < 0) = nan;
+    if a == 0
+        
+        xdata_2(1:length(x)) = ymid;
+        xdata_1 = xdata_2;
+    else
+        A = (1/a^2);
+        
+        B = -((2 * ymid)/a^2);
+        
+        C = ((ymid^2)/a^2 - ((x - xmid).^2) ./ (b^2) - 1);
+        % solve regular quadratic equation
+        dicriminant = B.^2 - 4*A.*C;
+
+        xdata_1 = (-B - sqrt(dicriminant))./(2*A);
+        xdata_2 = (-B + sqrt(dicriminant))./(2*A);
+%         xdata_1(dicriminant < 0) = nan;
+%         xdata_2(dicriminant < 0) = nan;
+    end
+%     x(dicriminant < 0) = nan;
     xvalue = [x,nan,x];
     yvalue = [xdata_1,nan,xdata_2];
 end
