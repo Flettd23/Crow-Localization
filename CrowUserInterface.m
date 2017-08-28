@@ -24,7 +24,7 @@ function varargout = CrowUserInterface(varargin)
 
 % Edit the above text to modify the response to help CrowUserInterface
 
-% Last Modified by GUIDE v2.5 27-Aug-2017 20:56:54
+% Last Modified by GUIDE v2.5 28-Aug-2017 13:26:56
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -193,3 +193,10 @@ fs = 24000;
 array = getappdata(0,'LoadData');
 p = audioplayer(array(:,2),fs);
 p.play
+
+
+% --- Executes on button press in plotprevious.
+function plotprevious_Callback(hObject, eventdata, handles)
+% hObject    handle to plotprevious (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

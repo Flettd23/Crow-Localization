@@ -59,8 +59,8 @@ fOut = filter(b, a, wave);
 
 %Uncomment to play the filtered sound clip
 
- p = audioplayer(fOut,fs);
-p.play;
+%  p = audioplayer(fOut,fs);
+% p.play;
 
 %Storing Filtered sound file into new array 'wave2'
 wave2 = fOut;
