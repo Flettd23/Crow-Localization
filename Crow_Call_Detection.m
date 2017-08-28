@@ -1,3 +1,4 @@
+
 %% ***************** Crow Auto Detection ******************
                         %Derek Flett
 close all
@@ -9,7 +10,17 @@ clear all
 [wave,fs] = audioread(FileName1); 
 L = length(wave) ;
 NFFT = L;
-
+ 
+%Creating Text file to store vital information for later analysis 
+ prompt = 'Please enter the file name you would like to save the sample to: ';
+ fileName = input(prompt,'s');
+ fileName1=[fileName,'.txt']; % Choose different extension if you like.
+ % open a file for writing
+ fid = fopen(fileName1, 'wt'); 
+ if fid == -1
+   error('Cannot open file: %s', fileName1); 
+ end
+ 
 %Uncomment to play unfiltered sound
 
 % pOrig = audioplayer(wave,fs);
@@ -48,13 +59,14 @@ fOut = filter(b, a, wave);
 
 %Uncomment to play the filtered sound clip
 
-% p = audioplayer(fOut,fs);
-% p.play;
+ p = audioplayer(fOut,fs);
+p.play;
 
 %Storing Filtered sound file into new array 'wave2'
 wave2 = fOut;
 soundData2 = zeros(length(wave),2);
 soundData2(:,2) = wave2(:,2);
+soundData2(:,1) = 1:1:L;
 soundData2fft = fft(wave2(:,2),NFFT);
 subplot(4,1,3)
           plot(t,wave2(:,1))
@@ -68,9 +80,13 @@ subplot(4,1,4)
           xlabel('Freq (in Hz)');
 
           
+          
+ 
+
+          
 %% *****************  Caculating and Plotting Energy  *********************
 tic;
-soundData2(:,2) = wave2(:,2).^2;
+
 %%Sum of energy Graph
 timeStep = 0.2; 
 steps = timeStep/(1/fs);
@@ -78,7 +94,7 @@ steps = timeStep/(1/fs);
 %Constants to find peaks in data 
 %minEnergy is the minimum energy you want a possible crow call to be detected
 numCalls = 10; %Number of calls you expect to hear 
-callStart = zeros(numCalls,1); 
+SoundDetect = zeros(numCalls,1); 
 energyData = zeros(L,1);
 for i = 1:L-steps
     energyData(i) = sum(wave2(i:i+steps,2).^2);
@@ -99,18 +115,34 @@ plot(t(1:L),energyData);
 
 
 %Detecting Peaks and the time they appear
-minEnergy = 15;%minEnergy is the minimum energy you want a possible crow call to be detected
+minEnergy = 3;%minEnergy is the minimum energy you want a possible crow call to be detected
 numCall = 50; %Number of calls you expect to encounter
-CallStart = zeros(numCall,2);
+SoundDetect = zeros(numCall,2);
 ind = 1;
 max = 0;
+
+spaceSize = 4; %m
+maxTime = (sqrt(spaceSize.^2+spaceSize.^2))/340;  %units seconds
+maxIndex = floor(maxTime*fs);
+Start_Stop = zeros(numCall,2);
 for i = 1:L
     if energyData(i) > minEnergy
         if energyData(i+1)> minEnergy %Causes problems if call is close to the min energy level 
             if energyData(i) > max 
                 max = energyData(i);
-                CallStart(ind,2) = energyData(i);
-                CallStart(ind,1) = i*(1/fs);
+                SoundDetect(ind,2) = energyData(i); %Energy of the sound
+                SoundDetect(ind,1) = i*(1/fs); %sample at which the sound occured
+                
+                 %Assuming we detect a call of interest, to avoid the possiblilty of
+                 %cutting out the call from other other mics as we import the audio files
+                 %into Crow_2D_Localization, we can use the max distance from the mics
+                 %devided by the speed of sound to calculate the maximum time difference
+                 %between the sounds arrival to each mic
+
+
+                 Start_Stop(ind,1) = (i-maxIndex);
+                 Start_Stop(ind,2) = (i+maxIndex);
+                
             end
         else   
        ind = ind + 1;
@@ -119,10 +151,31 @@ for i = 1:L
     end
 end
 
- for i = 1:length(CallStart)
-     if ((CallStart(i,1) ~= 0) && (CallStart(i,2) ~= 0))
-          plot(CallStart(i,1),CallStart(i,2),'r*')
+ for i = 1:length(SoundDetect)
+     if ((SoundDetect(i,1) ~= 0) && (SoundDetect(i,2) ~= 0))
+          plot(SoundDetect(i,1),SoundDetect(i,2),'r*')
      end
  end
  hold off
+ 
+ %Printing Relevant Segments of the entire sound file to a new text file to
+ %be later used by the User Interface in selecting which parts are to be
+ %anaylized by Crow Localization
+ for i = 1:length(Start_Stop)
+     if ((Start_Stop(i,1) ~= 0) && (Start_Stop(i,2) ~= 0)) 
+          for k = 1:size(soundData2(:,1))
+              if (k >= Start_Stop(i,1)) && (k <= Start_Stop(i,2))
+              fprintf(fid,'%g\t',soundData2(k,:));
+              fprintf(fid,'\n');
+              end
+          end
+     end
+     fprintf(fid,'\n');
+ end
+ fclose(fid);
    
+     
+     
+
+
+ 
