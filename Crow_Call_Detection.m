@@ -51,7 +51,7 @@ subplot(4,1,2)
 %Design a bandpass filter that filters out between 500 to 2000 Hz
 n = 7;
 beginFreq = 500 / (fs/2);
-endFreq = 2000 / (fs/2);
+endFreq = 2500/ (fs/2);
 [b,a] = butter(n, [beginFreq, endFreq], 'bandpass');
 
 % Filter the signal

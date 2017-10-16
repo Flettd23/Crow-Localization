@@ -37,17 +37,20 @@ z_r(1:receivernum) = 0;
 % Read the file
 % And specify start time and end time of the sound you wish to localize. 
 
-t_s = 286; %Start time
-t_e = 287; %End time
+t_s = 672; %Start time
+t_e = 673; %End time
 
-[FileName1,PathName] = uigetfile('C:\Users\virdi_000\Documents\MATLAB\Crows\Crow-Localization-master\*.wav','Select the first file'); [data11,Fs] = audioread(FileName1); data1 = data11(t_s*Fs:t_e*Fs,1);
-[FileName2,PathName] = uigetfile('C:\Users\virdi_000\Documents\MATLAB\Crows\Crow-Localization-master\*.wav','Select the first file'); [data22,Fs] = audioread(FileName2);data2 = data22(t_s*Fs:t_e*Fs,1);
-[FileName3,PathName] = uigetfile('C:\Users\virdi_000\Documents\MATLAB\Crows\Crow-Localization-master\*.wav','Select the first file'); [data33,Fs] = audioread(FileName3); data3 = data33(t_s*Fs:t_e*Fs,1);
-[FileName4,PathName] = uigetfile('C:\Users\virdi_000\Documents\MATLAB\Crows\Crow-Localization-master\*.wav','Select the first file'); [data44,Fs] = audioread(FileName4); data4 = data44(t_s*Fs:t_e*Fs,1);
+t_s_section3 = t_s-0.01; %Start time
+t_e_section3 = t_e-0.01; %End time
+
+[FileName1,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data11,Fs] = audioread(FileName1); data1 = data11(t_s*Fs:t_e*Fs,2);
+[FileName2,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data22,Fs] = audioread(FileName2);data2 = data22(t_s*Fs:t_e*Fs,2);
+[FileName3,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data33,Fs] = audioread(FileName3); data3 = data33(t_s_section3*Fs:t_e_section3*Fs,1);
+[FileName4,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data44,Fs] = audioread(FileName4); data4 = data44(t_s*Fs:t_e*Fs,2);
 
 n = 7;
 beginFreq = 500/(Fs/2);
-endFreq = 4000/(Fs/2);
+endFreq = 2500/(Fs/2);
 [b,a] = butter(n,[beginFreq, endFreq], 'bandpass');
 
 %Filter Signals%
@@ -84,8 +87,8 @@ xlabel('Time(s)')
 ylabel('Frequency(kHz)')
 title('Element 1')
 %%
-Fmin = 5000;                                                               % Minimum Frequency (Hz)
-Fmax = 10000;                                                               % Maximum Frequency (Hz)
+Fmin = 500;                                                               % Minimum Frequency (Hz)
+Fmax = 2500;                                                               % Maximum Frequency (Hz)
 [~,Imin] = min(abs(F-Fmin));                                               % Minimum Frequency Index
 [~,Imax] = min(abs(F-Fmax));                                               % Maximum Frequency Index
 

@@ -129,6 +129,7 @@ function PlotCall_Callback(hObject, eventdata, handles)
 
 %Pulling array from its initial Load function
 array = getappdata(0,'LoadData');
+
 %Defining nesseary audio file details
 fs = 24000;
 L = length(array) ;

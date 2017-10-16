@@ -37,8 +37,8 @@ z_r(1:receivernum) = 0;
 % Read the file
 % And specify start time and end time of the sound you wish to localize. 
 
-t_s = 671; %Start time
-t_e = 672; %End time
+t_s = 420; %Start time
+t_e = 421; %End time
 
 [FileName1,PathName] = uigetfile('C:\Users\virdi_000\Documents\MATLAB\Crows\Crow-Localization-master\*.wav','Select the first file'); [data11,Fs] = audioread(FileName1); data1 = data11(t_s*Fs:t_e*Fs,1);
 [FileName2,PathName] = uigetfile('C:\Users\virdi_000\Documents\MATLAB\Crows\Crow-Localization-master\*.wav','Select the first file'); [data22,Fs] = audioread(FileName2);data2 = data22(t_s*Fs:t_e*Fs,1);
@@ -47,7 +47,7 @@ t_e = 672; %End time
 
 n = 7;
 beginFreq = 500/(Fs/2);
-endFreq = 4000/(Fs/2);
+endFreq = 2500/(Fs/2);
 [b,a] = butter(n,[beginFreq, endFreq], 'bandpass');
 
 %Filter Signals%
@@ -84,8 +84,8 @@ k = 2*pi*F/c;                 % Wave number
 % ylabel('Frequency(kHz)')
 % title('Element 1')
 %%
-Fmin = 5000;                                                               % Minimum Frequency (Hz)
-Fmax = 10000;                                                               % Maximum Frequency (Hz)
+Fmin = 500;                                                               % Minimum Frequency (Hz)
+Fmax = 2500;                                                               % Maximum Frequency (Hz)
 [~,Imin] = min(abs(F-Fmin));                                               % Minimum Frequency Index
 [~,Imax] = min(abs(F-Fmax));                                               % Maximum Frequency Index
 
