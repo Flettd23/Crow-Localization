@@ -7,7 +7,7 @@ clear all
 
 %Import File
 [FileName1,PathName] = uigetfile('*.wav','Select the first file'); 
-[wave,fs] = audioread(FileName1); 
+[wave,fs] = audioread(fullfile(PathName,FileName1)); 
 L = length(wave) ;
 NFFT = L;
  

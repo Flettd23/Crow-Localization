@@ -1,0 +1,12 @@
+UI:
+- Open from desktop
+- When inputing a file a diagram shows up with the recorders marked on it.
+  Enter the dimensions of the shape and it dynamically changes
+- Localization it is nice to know what time the crow position is at
+- Know the order each mic recorded along with variables
+- Error indication for localization
+- Higlight audio file as a spectogram
+- Dropdown Menu: Spectogram, spreadsheet builder, number of syllabuls in a call, duration of call interval, Inter call interval,
+  
+- Listen to call
+- Detection, Localization, Post Processing

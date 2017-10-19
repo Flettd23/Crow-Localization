@@ -24,7 +24,7 @@ function varargout = CrowUserInterface(varargin)
 
 % Edit the above text to modify the response to help CrowUserInterface
 
-% Last Modified by GUIDE v2.5 28-Aug-2017 13:26:56
+% Last Modified by GUIDE v2.5 17-Oct-2017 12:02:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -45,6 +45,13 @@ else
 end
 % End initialization code - DO NOT EDIT
 
+function setGlobalx(val)
+global x
+x = val;
+
+function times = getGlobalx
+global x
+times = x;
 
 % --- Executes just before CrowUserInterface is made visible.
 function CrowUserInterface_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -90,18 +97,18 @@ function NextCall_Callback(hObject, eventdata, handles)
 
 
 
-function FileName_Callback(hObject, eventdata, handles)
-% hObject    handle to FileName (see GCBO)
+function SoundFile_Callback(hObject, eventdata, handles)
+% hObject    handle to SoundFile (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of FileName as text
-%        str2double(get(hObject,'String')) returns contents of FileName as a double
+% Hints: get(hObject,'String') returns contents of SoundFile as text
+%        str2double(get(hObject,'String')) returns contents of SoundFile as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function FileName_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to FileName (see GCBO)
+function SoundFile_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to SoundFile (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -117,7 +124,8 @@ function LoadData_Callback(hObject, eventdata, handles)
 % hObject    handle to LoadData (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-File_Name = get(handles.FileName, 'string');
+
+File_Name = get(handles.OutputFile, 'string');
 SoundData = dlmread(File_Name);
 setappdata(0,'LoadData',SoundData);
 
@@ -129,6 +137,7 @@ function PlotCall_Callback(hObject, eventdata, handles)
 
 %Pulling array from its initial Load function
 array = getappdata(0,'LoadData');
+
 %Defining nesseary audio file details
 fs = 24000;
 L = length(array) ;
@@ -200,3 +209,46 @@ function plotprevious_Callback(hObject, eventdata, handles)
 % hObject    handle to plotprevious (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+
+function OutputFile_Callback(hObject, eventdata, handles)
+% hObject    handle to OutputFile (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of OutputFile as text
+%        str2double(get(hObject,'String')) returns contents of OutputFile as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function OutputFile_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to OutputFile (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in SelectOutput.
+function SelectOutput_Callback(hObject, eventdata, handles)
+% hObject    handle to SelectOutput (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[FileName1,PathName] = uigetfile('*.txt','Select the first file');
+outFilePath = strcat(PathName,FileName1);
+set(handles.OutputFile,'String',outFilePath);
+
+
+% --- Executes on button press in InputSelect.
+function InputSelect_Callback(hObject, eventdata, handles)
+% hObject    handle to InputSelect (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[FileName1,PathName] = uigetfile('*.wav','Select the first file');
+inFilePath = strcat(PathName,FileName1);
+set(handles.SoundFile,'String',inFilePath);
