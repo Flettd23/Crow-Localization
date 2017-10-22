@@ -199,9 +199,8 @@ function playsound_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 fs = 24000;
-array = getappdata(0,'LoadData');
-p = audioplayer(array(:,2),fs);
-p.play
+a = wavread(get(handles.SoundFile,'String'));
+%array = getappdata(0,'LoadData');
 
 
 % --- Executes on button press in plotprevious.
