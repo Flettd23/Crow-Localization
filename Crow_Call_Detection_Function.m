@@ -1,4 +1,4 @@
-function Start_Stop = Crow_Call_Detection(Path,OutputFileName) 
+function Time_Array = Crow_Call_Detection(Path,OutputFileName) 
 %% ***************** Crow Auto Detection ******************
                         %Derek Flett
 close all
@@ -12,7 +12,7 @@ L = length(wave) ;
 NFFT = L;
  
 %Creating Text file to store vital information for later analysis 
- fileName1=[OutputfileName,'.txt']; % Choose different extension if you like.
+ fileName1=[OutputFileName,'.txt']; % Choose different extension if you like.
  % open a file for writing
  fid = fopen(fileName1, 'wt'); 
  if fid == -1
@@ -49,19 +49,14 @@ subplot(4,1,2)
 %Design a bandpass filter that filters out between 500 to 2000 Hz
 n = 7;
 beginFreq = 500 / (fs/2);
-endFreq = 2500/ (fs/2);
+endFreq = 2000 / (fs/2);
 [b,a] = butter(n, [beginFreq, endFreq], 'bandpass');
 
 % Filter the signal
 fOut = filter(b, a, wave);
 
-<<<<<<< HEAD
 % Uncomment to play the filtered sound clip
 % 
-=======
-%Uncomment to play the filtered sound clip
-
->>>>>>> master
 %  p = audioplayer(fOut,fs);
 % p.play;
 
@@ -173,6 +168,7 @@ end
      fprintf(fid,'\n');
  fclose(fid);
  
+ Time_Array = Start_Stop;
 end
 
      
