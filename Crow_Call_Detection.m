@@ -121,11 +121,17 @@ SoundDetect = zeros(numCall,2);
 ind = 1;
 max = 0;
 
+Progress = 0;
 spaceSize = 4; %m
 maxTime = (sqrt(spaceSize.^2+spaceSize.^2))/340;  %units seconds
 maxIndex = floor(maxTime*fs);
 Start_Stop = zeros(numCall,2);
+
+pr = Progress();
+pr.push_bar('Upload',1,L);
+
 for i = 1:L
+   
     if energyData(i) > minEnergy
         if energyData(i+1)> minEnergy %Causes problems if call is close to the min energy level 
             if energyData(i) > max 
@@ -149,6 +155,12 @@ for i = 1:L
         max = 0;
         end
     end
+ 
+    if mod(i,10000) == 0
+        pr.set_val(i);
+    end
+    
+end
 end
 
  for i = 1:length(SoundDetect)

@@ -40,8 +40,8 @@ z_r(1:receivernum) = 0;
 t_s = 672; %Start time
 t_e = 673; %End time
 
-t_s_section3 = t_s-0.01; %Start time
-t_e_section3 = t_e-0.01; %End time
+t_s_section3 = t_s-0.00; %Start time
+t_e_section3 = t_e-0.00; %End time
 
 [FileName1,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data11,Fs] = audioread(FileName1); data1 = data11(t_s*Fs:t_e*Fs,2);
 [FileName2,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data22,Fs] = audioread(FileName2);data2 = data22(t_s*Fs:t_e*Fs,2);
@@ -95,7 +95,7 @@ Fmax = 2500;                                                               % Max
 %If the funciton was called without a value for 'hyp_plot', the default
 %is set to true (yes plots)
 if ~exist('hyp_plot', 'var')
-    hyp_plot = true;
+    hyp_plot = false;
 end
 
 
