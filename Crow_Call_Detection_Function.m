@@ -29,22 +29,7 @@ F = linspace(0,fs,NFFT);
 soundData(:,2) = wave(:,2);
 soundData(:,1) = t;
 soundDatafft = fft(wave(:,2),NFFT);
-%Plotting both channels pre-filtering
-figure('name','Pre and Post Filterd Sound','numbertitle','off')
-subplot(4,1,1)
-          plot(t,wave(:,2))
-          title('PreFiltered Channel One');
-          ylabel('Amplitude');
-          xlabel('Time (in seconds)');
-          
-subplot(4,1,2)
-          plot(F(1:NFFT/2+1),abs(soundDatafft(1:NFFT/2+1,1)))
-          title('PreFiltered FFT');
-          ylabel('Spectrum');
-          xlabel('Freq (in Hz)');
-          
-         
-          
+   
 %Filtering out anything below 500 hz and above 2000 hz (subject to change)
 %Design a bandpass filter that filters out between 500 to 2000 Hz
 n = 7;
@@ -66,20 +51,6 @@ soundData2 = zeros(length(wave),2);
 soundData2(:,2) = wave2(:,2);
 soundData2(:,1) = 1:1:L;
 soundData2fft = fft(wave2(:,2),NFFT);
-subplot(4,1,3)
-          plot(t,wave2(:,1))
-          title('PostFiltered Channel One');
-          ylabel('Filtered Amplitude');
-          xlabel('Time (in seconds)');
-subplot(4,1,4)
-          plot(F(1:NFFT/2+1),abs(soundData2fft(1:NFFT/2+1,1)))
-          title('PostFiltered FFT');
-          ylabel('Filtered Spectrum');
-          xlabel('Freq (in Hz)');
-
-          
-          
- 
 
           
 %% *****************  Caculating and Plotting Energy  *********************
@@ -94,8 +65,10 @@ steps = timeStep/(1/fs);
 numCalls = 10; %Number of calls you expect to hear 
 SoundDetect = zeros(numCalls,1); 
 energyData = zeros(L,1);
-for i = 1:L-steps
+Total = L-steps;
+for i = 1:Total
     energyData(i) = sum(wave2(i:i+steps,2).^2);
+    progressbar(i/Total)
 end
 toc;
 
@@ -154,7 +127,7 @@ end
           plot(SoundDetect(i,1),SoundDetect(i,2),'r*')
      end
  end
- hold off
+
  
  %Printing Relevant Segments of the entire sound file to a new text file to
  %be later used by the User Interface in selecting which parts are to be

@@ -40,23 +40,12 @@ z_r(1:receivernum) = 0;
 t_s = 672; %Start time
 t_e = 673; %End time
 
-<<<<<<< Updated upstream
 t_s_section3 = t_s-0.01; %Start time
 t_e_section3 = t_e-0.01; %End time
 
 [FileName1,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data11,Fs] = audioread(FileName1); data1 = data11(t_s*Fs:t_e*Fs,2);
 [FileName2,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data22,Fs] = audioread(FileName2);data2 = data22(t_s*Fs:t_e*Fs,2);
 [FileName3,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data33,Fs] = audioread(FileName3); data3 = data33(t_s_section3*Fs:t_e_section3*Fs,1);
-=======
-%Rough estimate correction for Microphone 3's time error.
-
-t_s_mic3 = t_s-0.01; %Start time 
-t_e_mic3 = t_e-0.01; %End time 
-
-[FileName1,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data11,Fs] = audioread(FileName1); data1 = data11(t_s*Fs:t_e*Fs,2);
-[FileName2,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data22,Fs] = audioread(FileName2);data2 = data22(t_s*Fs:t_e*Fs,2);
-[FileName3,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data33,Fs] = audioread(FileName3); data3 = data33(t_s_mic3*Fs:t_e_mic3*Fs,1);
->>>>>>> Stashed changes
 [FileName4,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file'); [data44,Fs] = audioread(FileName4); data4 = data44(t_s*Fs:t_e*Fs,2);
 
 n = 7;

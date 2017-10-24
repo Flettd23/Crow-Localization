@@ -1,16 +1,17 @@
-function Start_Stop = Crow_Call_Detection(Path,OutputFileName) 
-%% ***************** Crow Auto Detection ******************
+% %% ***************** Crow Auto Detection ******************
                         %Derek Flett
 close all
 clear all
 
 
 %Import File
-FileName1 = dir(Path);
+[FileName1,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file');
 [wave,fs] = audioread(FileName1); 
+
 L = length(wave) ;
 NFFT = L;
- 
+OutputfileName = 'Text'; 
+
 %Creating Text file to store vital information for later analysis 
  fileName1=[OutputfileName,'.txt']; % Choose different extension if you like.
  % open a file for writing
@@ -55,13 +56,13 @@ endFreq = 2500/ (fs/2);
 % Filter the signal
 fOut = filter(b, a, wave);
 
-<<<<<<< HEAD
+
 % Uncomment to play the filtered sound clip
 % 
-=======
+
 %Uncomment to play the filtered sound clip
 
->>>>>>> master
+
 %  p = audioplayer(fOut,fs);
 % p.play;
 
@@ -99,8 +100,11 @@ steps = timeStep/(1/fs);
 numCalls = 10; %Number of calls you expect to hear 
 SoundDetect = zeros(numCalls,1); 
 energyData = zeros(L,1);
-for i = 1:L-steps
+progressbar % Create figure and set starting time 
+Total = L-steps;
+for i = 1:Total
     energyData(i) = sum(wave2(i:i+steps,2).^2);
+    progressbar(i/Total)
 end
 toc;
 
@@ -128,6 +132,9 @@ spaceSize = 4; %m
 maxTime = (sqrt(spaceSize.^2+spaceSize.^2))/340;  %units seconds
 maxIndex = floor(maxTime*fs);
 Start_Stop = zeros(numCall,2);
+
+
+
 for i = 1:L
     if energyData(i) > minEnergy
         if energyData(i+1)> minEnergy %Causes problems if call is close to the min energy level 
@@ -152,7 +159,9 @@ for i = 1:L
         max = 0;
         end
     end
+ 
 end
+
 
  for i = 1:length(SoundDetect)
      if ((SoundDetect(i,1) ~= 0) && (SoundDetect(i,2) ~= 0))
@@ -173,7 +182,7 @@ end
      fprintf(fid,'\n');
  fclose(fid);
  
-end
+% end
 
      
      
