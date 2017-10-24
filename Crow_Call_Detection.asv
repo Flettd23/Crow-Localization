@@ -129,7 +129,6 @@ Start_Stop = zeros(numCall,2);
 
 pr = Progress();
 pr.push_bar('Upload',1,L);
-
 for i = 1:L
    
     if energyData(i) > minEnergy
@@ -156,10 +155,8 @@ for i = 1:L
         end
     end
  
-    if mod(i,10000) == 0
-        pr.set_val(i);
-    end
-    
+    if 
+pr.set_val(i);
 end
 end
 

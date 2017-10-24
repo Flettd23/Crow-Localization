@@ -95,7 +95,7 @@ Fmax = 2500;                                                               % Max
 %If the funciton was called without a value for 'hyp_plot', the default
 %is set to true (yes plots)
 if ~exist('hyp_plot', 'var')
-    hyp_plot = true;
+    hyp_plot = false;
 end
 
 
