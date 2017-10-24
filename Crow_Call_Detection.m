@@ -1,20 +1,19 @@
-
-%% ***************** Crow Auto Detection ******************
+% %% ***************** Crow Auto Detection ******************
                         %Derek Flett
 close all
 clear all
 
 
 %Import File
-[FileName1,PathName] = uigetfile('*.wav','Select the first file'); 
-[wave,fs] = audioread(fullfile(PathName,FileName1)); 
+[FileName1,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file');
+[wave,fs] = audioread(FileName1); 
+
 L = length(wave) ;
 NFFT = L;
- 
+OutputfileName = 'Text'; 
+
 %Creating Text file to store vital information for later analysis 
- prompt = 'Please enter the file name you would like to save the sample to: ';
- fileName = input(prompt,'s');
- fileName1=[fileName,'.txt']; % Choose different extension if you like.
+ fileName1=[OutputfileName,'.txt']; % Choose different extension if you like.
  % open a file for writing
  fid = fopen(fileName1, 'wt'); 
  if fid == -1
@@ -51,13 +50,18 @@ subplot(4,1,2)
 %Design a bandpass filter that filters out between 500 to 2000 Hz
 n = 7;
 beginFreq = 500 / (fs/2);
-endFreq = 2000 / (fs/2);
+endFreq = 2500/ (fs/2);
 [b,a] = butter(n, [beginFreq, endFreq], 'bandpass');
 
 % Filter the signal
 fOut = filter(b, a, wave);
 
+
+% Uncomment to play the filtered sound clip
+% 
+
 %Uncomment to play the filtered sound clip
+
 
 %  p = audioplayer(fOut,fs);
 % p.play;
@@ -96,8 +100,11 @@ steps = timeStep/(1/fs);
 numCalls = 10; %Number of calls you expect to hear 
 SoundDetect = zeros(numCalls,1); 
 energyData = zeros(L,1);
-for i = 1:L-steps
+progressbar % Create figure and set starting time 
+Total = L-steps;
+for i = 1:Total
     energyData(i) = sum(wave2(i:i+steps,2).^2);
+    progressbar(i/Total)
 end
 toc;
 
@@ -125,6 +132,9 @@ spaceSize = 4; %m
 maxTime = (sqrt(spaceSize.^2+spaceSize.^2))/340;  %units seconds
 maxIndex = floor(maxTime*fs);
 Start_Stop = zeros(numCall,2);
+
+
+
 for i = 1:L
     if energyData(i) > minEnergy
         if energyData(i+1)> minEnergy %Causes problems if call is close to the min energy level 
@@ -141,7 +151,7 @@ for i = 1:L
 
 
                  Start_Stop(ind,1) = (i-maxIndex);
-                 Start_Stop(ind,2) = (i+maxIndex);
+                 Start_Stop(ind,2) = (i+0.3*fs+maxIndex);
                 
             end
         else   
@@ -149,7 +159,9 @@ for i = 1:L
         max = 0;
         end
     end
+ 
 end
+
 
  for i = 1:length(SoundDetect)
      if ((SoundDetect(i,1) ~= 0) && (SoundDetect(i,2) ~= 0))
@@ -163,17 +175,15 @@ end
  %anaylized by Crow Localization
  for i = 1:length(Start_Stop)
      if ((Start_Stop(i,1) ~= 0) && (Start_Stop(i,2) ~= 0)) 
-          for k = 1:size(soundData2(:,1))
-              if (k >= Start_Stop(i,1)) && (k <= Start_Stop(i,2))
-              fprintf(fid,'%g\t',soundData2(k,:));
-              fprintf(fid,'\n');
-              end
-          end
+              fprintf(fid,'%g\t',Start_Stop(i,:));
+              fprintf(fid,'\n'); 
      end
-     fprintf(fid,'\n');
  end
+     fprintf(fid,'\n');
  fclose(fid);
-   
+ 
+% end
+
      
      
 
