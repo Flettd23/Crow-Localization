@@ -1,13 +1,11 @@
 function Time_Array = Crow_Call_Detection(Path,OutputFileName) 
 %% ***************** Crow Auto Detection ******************
                         %Derek Flett
-close all
-clear all
+%close all
 
 
 %Import File
-FileName1 = dir(Path);
-[wave,fs] = audioread(FileName1); 
+[wave,fs] = audioread(Path); 
 L = length(wave) ;
 NFFT = L;
  

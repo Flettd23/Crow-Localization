@@ -324,7 +324,9 @@ function RunDetect_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 audioPath = get(handles.SoundFile,'String');
+fileName = get(handles.OutputName,'String');
 [wave,fs] = audioread(audioPath);
+Time_Array = Crow_Call_Detection_Function(audioPath,fileName);
 channel1 = wave(:,1);
 setappdata(0,'Channel1',channel1);
 setappdata(0,'fs',fs);
