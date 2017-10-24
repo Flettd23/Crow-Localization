@@ -24,7 +24,7 @@ function varargout = CrowUserInterface(varargin)
 
 % Edit the above text to modify the response to help CrowUserInterface
 
-% Last Modified by GUIDE v2.5 17-Oct-2017 12:02:32
+% Last Modified by GUIDE v2.5 23-Oct-2017 11:53:19
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -44,14 +44,6 @@ else
     gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
-
-function setGlobalx(val)
-global x
-x = val;
-
-function times = getGlobalx
-global x
-times = x;
 
 % --- Executes just before CrowUserInterface is made visible.
 function CrowUserInterface_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -124,7 +116,6 @@ function LoadData_Callback(hObject, eventdata, handles)
 % hObject    handle to LoadData (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
 File_Name = get(handles.OutputFile, 'string');
 SoundData = dlmread(File_Name);
 setappdata(0,'LoadData',SoundData);
@@ -198,9 +189,15 @@ function playsound_Callback(hObject, eventdata, handles)
 % hObject    handle to playsound (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-fs = 24000;
-a = wavread(get(handles.SoundFile,'String'));
-%array = getappdata(0,'LoadData');
+fs = getappdata(0,'fs');
+soundData = getappdata(0,'Channel1');
+startTime = str2num(get(handles.StartTime,'String'));
+stopTime = str2num(get(handles.StopTime,'String'));
+startIdx = floor(fs * (startTime * 0.001))
+stopIdx = floor(fs * (stopTime * 0.001))
+playFile = soundData(startIdx:stopIdx);
+sound(playFile,fs);
+
 
 
 % --- Executes on button press in plotprevious.
@@ -208,7 +205,6 @@ function plotprevious_Callback(hObject, eventdata, handles)
 % hObject    handle to plotprevious (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
 
 
 function OutputFile_Callback(hObject, eventdata, handles)
@@ -251,3 +247,147 @@ function InputSelect_Callback(hObject, eventdata, handles)
 [FileName1,PathName] = uigetfile('*.wav','Select the first file');
 inFilePath = strcat(PathName,FileName1);
 set(handles.SoundFile,'String',inFilePath);
+
+
+
+function StartTime_Callback(hObject, eventdata, handles)
+% hObject    handle to StartTime (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of StartTime as text
+%        str2double(get(hObject,'String')) returns contents of StartTime as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function StartTime_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to StartTime (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function StopTime_Callback(hObject, eventdata, handles)
+% hObject    handle to StopTime (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of StopTime as text
+%        str2double(get(hObject,'String')) returns contents of StopTime as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function StopTime_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to StopTime (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function OutputName_Callback(hObject, eventdata, handles)
+% hObject    handle to OutputName (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of OutputName as text
+%        str2double(get(hObject,'String')) returns contents of OutputName as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function OutputName_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to OutputName (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in RunDetect.
+function RunDetect_Callback(hObject, eventdata, handles)
+% hObject    handle to RunDetect (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+audioPath = get(handles.SoundFile,'String');
+[wave,fs] = audioread(audioPath);
+channel1 = wave(:,1);
+setappdata(0,'Channel1',channel1);
+setappdata(0,'fs',fs);
+
+
+% --- Executes on selection change in GraphMenu.
+function GraphMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to GraphMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns GraphMenu contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from GraphMenu
+array = getappdata(0,'LoadData');
+
+%Defining nesseary audio file details
+fs = 24000;
+L = length(array) ;
+t=0:1/fs:(length(array)-1)/fs;
+soundData2 = zeros(length(array),2);
+soundData2(:,2) = array(:,2).^2;
+%%Sum of energy Graph
+timeStep = 0.02; 
+steps = timeStep/(1/fs);
+energyData = zeros(L,1);
+    for i = 1:L-steps
+    energyData(i) = sum(soundData2(i:i+steps,2).^2);
+    end
+    
+    
+
+%Defining variables nesseary for graphs
+NFFT = L
+soundData2fft = fft(array(:,2),NFFT)
+F = linspace(0,fs,NFFT);
+
+axes(handles.axes3);
+switch get(handles.GraphMenu,'Value')
+    case 2
+        plot(t,array(:,2))
+        title('PostFiltered Channel Two');
+        ylabel('Filtered Amplitude');
+        xlabel('Time (in seconds)');
+    case 3
+        plot(F(1:NFFT/2+1),abs(soundData2fft(1:NFFT/2+1,1)))
+        title('PostFiltered FFT');
+        ylabel('Filtered Spectrum');
+        xlabel('Freq (in Hz)');
+    case 4
+        plot(t(1:L),energyData);
+        xlabel('Time');
+        ylabel('Energy');
+        title('Energy vs Time');
+end
+
+% --- Executes during object creation, after setting all properties.
+function GraphMenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to GraphMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
