@@ -103,19 +103,17 @@ energyData = zeros(L,1);
 
 
 
-% TestWave = wave2.^2;
-%Vectorize
-% VectorWave = zeros(1,length(wave));
-for i = 1:length(wave)
-    VectorWave(1,i) = wave2(i,2); 
-end
-% 
+
 Total = L-steps;
 
 
-%ParFor loop
-
-
+% %ParFor loop
+% 
+% %Vectorize
+% for i = 1:length(wave)
+%     VectorWave(1,i) = wave2(i,2); 
+% end
+% 
 % parfor i = 1:Total
 %     energyData(i) = sum(VectorWave(1,i:i+steps).^2);
 % end
@@ -125,12 +123,12 @@ Total = L-steps;
 %Regular For loop
 
 
-progressbar % Create figure and set starting time 
-for i = 1:Total
-    energyData(i) = sum(wave2(i:i+steps,2).^2);
-    progressbar(i/Total)
-end
-toc;
+% progressbar % Create figure and set starting time 
+% for i = 1:Total
+%     energyData(i) = sum(wave2(i:i+steps,2).^2);
+%     progressbar(i/Total)
+% end
+% toc;
 
 %Plotting Energy vs Time
 figure('name','Energy of Filtered Wave','numbertitle','off')
