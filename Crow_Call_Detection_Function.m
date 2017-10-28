@@ -17,16 +17,6 @@ NFFT = L;
    error('Cannot open file: %s', fileName1); 
  end
  
-%Uncomment to play unfiltered sound
-
-% pOrig = audioplayer(wave,fs);
-% pOrig.play;
-
-t=0:1/fs:(length(wave)-1)/fs; % and get sampling frequency */
-F = linspace(0,fs,NFFT);
-soundData(:,2) = wave(:,2);
-soundData(:,1) = t;
-soundDatafft = fft(wave(:,2),NFFT);
    
 %Filtering out anything below 500 hz and above 2000 hz (subject to change)
 %Design a bandpass filter that filters out between 500 to 2000 Hz
@@ -38,21 +28,13 @@ endFreq = 2000 / (fs/2);
 % Filter the signal
 fOut = filter(b, a, wave);
 
-% Uncomment to play the filtered sound clip
-% 
-%  p = audioplayer(fOut,fs);
-% p.play;
-
 %Storing Filtered sound file into new array 'wave2'
 wave2 = fOut;
-soundData2 = zeros(length(wave),2);
-soundData2(:,2) = wave2(:,2);
-soundData2(:,1) = 1:1:L;
-soundData2fft = fft(wave2(:,2),NFFT);
+
 
           
 %% *****************  Caculating and Plotting Energy  *********************
-tic;
+
 
 %%Sum of energy Graph
 timeStep = 0.2; 
@@ -60,25 +42,14 @@ steps = timeStep/(1/fs);
 
 %Constants to find peaks in data 
 %minEnergy is the minimum energy you want a possible crow call to be detected
-numCalls = 10; %Number of calls you expect to hear 
-SoundDetect = zeros(numCalls,1); 
 energyData = zeros(L,1);
 Total = L-steps;
 for i = 1:Total
     energyData(i) = sum(wave2(i:i+steps,2).^2);
     progressbar(i/Total)
 end
-toc;
 
-%Plotting Energy vs Time
-figure('name','Energy of Filtered Wave','numbertitle','off')
-plot(t(1:L),energyData);
-          xlabel('Time');
-          ylabel('Energy');
-          title('Energy vs Time');
- hold on
 
-          
 
 %% ***************** Detecting and Saving Possible Calls*******************
 
@@ -86,6 +57,7 @@ plot(t(1:L),energyData);
 %Detecting Peaks and the time they appear
 minEnergy = 3;%minEnergy is the minimum energy you want a possible crow call to be detected
 numCall = 50; %Number of calls you expect to encounter
+ 
 SoundDetect = zeros(numCall,2);
 ind = 1;
 max = 0;
