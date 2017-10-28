@@ -24,7 +24,7 @@ function varargout = CrowUserInterface(varargin)
 
 % Edit the above text to modify the response to help CrowUserInterface
 
-% Last Modified by GUIDE v2.5 23-Oct-2017 11:53:19
+% Last Modified by GUIDE v2.5 25-Oct-2017 16:51:14
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -116,64 +116,20 @@ function LoadData_Callback(hObject, eventdata, handles)
 % hObject    handle to LoadData (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-File_Name = get(handles.OutputFile, 'string');
-SoundData = dlmread(File_Name);
-setappdata(0,'LoadData',SoundData);
+SoundData = dlmread('OutputFile3.txt');
+setappdata(0,'Data',SoundData);
+setappdata(0,'index',1);
 
 % --- Executes on button press in PlotCall.
 function PlotCall_Callback(hObject, eventdata, handles)
 % hObject    handle to PlotCall (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-%Pulling array from its initial Load function
-array = getappdata(0,'LoadData');
-
-%Defining nesseary audio file details
-fs = 24000;
-L = length(array) ;
-t=0:1/fs:(length(array)-1)/fs;
-soundData2 = zeros(length(array),2);
-soundData2(:,2) = array(:,2).^2;
-%%Sum of energy Graph
-timeStep = 0.02; 
-steps = timeStep/(1/fs);
-energyData = zeros(L,1);
-    for i = 1:L-steps
-    energyData(i) = sum(soundData2(i:i+steps,2).^2);
-    end
-    
-    
-
-%Defining variables nesseary for graphs
-NFFT = L
-soundData2fft = fft(array(:,2),NFFT)
-F = linspace(0,fs,NFFT);
-
-
-%Using a switch statement to plot all three graphs with one push button
-    for n = 1:3
-        switch n
-            case 1
-              axes(handles.axes3); 
-              plot(t(1:L),energyData);
-              xlabel('Time');
-              ylabel('Energy');
-              title('Energy vs Time');
-            case 2 
-              axes(handles.axes4); 
-              plot(t,array(:,2))
-              title('PostFiltered Channel Two');
-              ylabel('Filtered Amplitude');
-              xlabel('Time (in seconds)');
-            case 3
-              axes(handles.axes5); 
-              plot(F(1:NFFT/2+1),abs(soundData2fft(1:NFFT/2+1,1)))
-              title('PostFiltered FFT');
-              ylabel('Filtered Spectrum');
-              xlabel('Freq (in Hz)');
-        end
-    end
+idx = getappdata(0,'index')
+if (idx + 1) <= 4
+    idx = idx + 1;  
+end
+setappdata(0,'index',idx);
 
 % --- Executes during object creation, after setting all properties.
 function axes4_CreateFcn(hObject, eventdata, handles)
@@ -189,13 +145,19 @@ function playsound_Callback(hObject, eventdata, handles)
 % hObject    handle to playsound (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-fs = getappdata(0,'fs');
-soundData = getappdata(0,'Channel1');
-startTime = str2num(get(handles.StartTime,'String'));
-stopTime = str2num(get(handles.StopTime,'String'));
-startIdx = floor(fs * (startTime * 0.001))
-stopIdx = floor(fs * (stopTime * 0.001))
-playFile = soundData(startIdx:stopIdx);
+%fs = getappdata(0,'fs');
+%soundData = getappdata(0,'Channel1');
+audioPath = get(handles.SoundFile,'String');
+%fileName = get(handles.OutputName,'String');
+[wave,fs] = audioread(audioPath);
+channel1 = wave(:,1);
+idx = str2num(get(handles.StartTime,'String'));
+ssTime = getappdata(0,'Data');
+startTime = ssTime(idx,1);
+stopTime = ssTime(idx,2);
+%startIdx = floor(fs * (startTime * 0.001));
+%stopIdx = floor(fs * (stopTime * 0.001));
+playFile = channel1(startTime:stopTime);
 sound(playFile,fs);
 
 
@@ -205,6 +167,11 @@ function plotprevious_Callback(hObject, eventdata, handles)
 % hObject    handle to plotprevious (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+idx = getappdata(0,'index');
+if (idx - 1) <= 0
+    idx = idx - 1;    
+end
+setappdata(0,'index',idx);
 
 
 function OutputFile_Callback(hObject, eventdata, handles)
@@ -326,10 +293,10 @@ function RunDetect_Callback(hObject, eventdata, handles)
 audioPath = get(handles.SoundFile,'String');
 fileName = get(handles.OutputName,'String');
 [wave,fs] = audioread(audioPath);
-Time_Array = Crow_Call_Detection_Function(audioPath,fileName);
 channel1 = wave(:,1);
 setappdata(0,'Channel1',channel1);
 setappdata(0,'fs',fs);
+Time_Array = Crow_Call_Detection_Function(audioPath,fileName);
 
 
 % --- Executes on selection change in GraphMenu.
@@ -393,3 +360,57 @@ function GraphMenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in checkbox1.
+function checkbox1_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox1
+
+
+% --- Executes on button press in DisplayMic.
+function DisplayMic_Callback(hObject, eventdata, handles)
+% hObject    handle to DisplayMic (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of DisplayMic
+
+
+% --- Executes on button press in DisplayHyperbola.
+function DisplayHyperbola_Callback(hObject, eventdata, handles)
+% hObject    handle to DisplayHyperbola (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of DisplayHyperbola
+
+
+% --- Executes on button press in DisplayIntersect.
+function DisplayIntersect_Callback(hObject, eventdata, handles)
+% hObject    handle to DisplayIntersect (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of DisplayIntersect
+
+
+% --- Executes on button press in DisplayReal.
+function DisplayReal_Callback(hObject, eventdata, handles)
+% hObject    handle to DisplayReal (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of DisplayReal
+
+
+% --- Executes on button press in DisplayPrelim.
+function DisplayPrelim_Callback(hObject, eventdata, handles)
+% hObject    handle to DisplayPrelim (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of DisplayPrelim
