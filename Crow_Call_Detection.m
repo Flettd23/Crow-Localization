@@ -109,14 +109,14 @@ Total = L-steps;
 
 % %ParFor loop
 % 
-% %Vectorize
-% for i = 1:length(wave)
-%     VectorWave(1,i) = wave2(i,2); 
-% end
-% 
-% parfor i = 1:Total
-%     energyData(i) = sum(VectorWave(1,i:i+steps).^2);
-% end
+%Vectorize
+for i = 1:length(wave)
+    VectorWave(1,i) = wave2(i,2); 
+end
+
+parfor i = 1:Total
+    energyData(i) = sum(VectorWave(1,i:i+steps).^2);
+end
 
 
 

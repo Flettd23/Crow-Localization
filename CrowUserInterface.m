@@ -118,6 +118,9 @@ function LoadData_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 SoundData = dlmread('OutputFile3.txt');
 setappdata(0,'Data',SoundData);
+fileName = get(handles.OutputName,'String');
+[Audio,Fs] = audioread(fileName)
+setappdata(0,'Audio1',Audio)
 setappdata(0,'index',1);
 
 % --- Executes on button press in PlotCall.
@@ -295,8 +298,9 @@ fileName = get(handles.OutputName,'String');
 [wave,fs] = audioread(audioPath);
 channel1 = wave(:,1);
 setappdata(0,'Channel1',channel1);
-setappdata(0,'fs',fs);
+setappdata(0,'Fs',fs);
 Time_Array = Crow_Call_Detection_Function(audioPath,fileName);
+setappdata(0,'Start_Stop',Time_Array);
 
 
 % --- Executes on selection change in GraphMenu.
@@ -307,33 +311,37 @@ function GraphMenu_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns GraphMenu contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from GraphMenu
-array = getappdata(0,'LoadData');
 
-%Defining nesseary audio file details
-fs = 24000;
-L = length(array) ;
-t=0:1/fs:(length(array)-1)/fs;
-soundData2 = zeros(length(array),2);
-soundData2(:,2) = array(:,2).^2;
+Start_Stop = getappdata(0,'Start_Stop');
+SoundData = getappdata(0,'Channel1');
+Fs = getappdata(0,'Fs');
+t_s = round((Start_Stop(1,1)/Fs),2); %Start time
+t_e = round((Start_Stop(1,2)/Fs),2); %End time
+data1 = SoundData(t_s*Fs:t_e*Fs,1);
+
+
+L = length(data1) ;
+t=0:1/Fs:(length(data1)-1)/Fs;
+soundData2 = zeros(length(data1),1);
+soundData2(:,2) = data1(:,1).^2;
 %%Sum of energy Graph
 timeStep = 0.02; 
-steps = timeStep/(1/fs);
+steps = timeStep/(1/Fs);
 energyData = zeros(L,1);
-    for i = 1:L-steps
+
+for i = 1:L-steps
     energyData(i) = sum(soundData2(i:i+steps,2).^2);
-    end
-    
-    
+end
 
 %Defining variables nesseary for graphs
-NFFT = L
-soundData2fft = fft(array(:,2),NFFT)
-F = linspace(0,fs,NFFT);
+NFFT = L;
+soundData2fft = fft(SoundData(:,1),NFFT);
+F = linspace(0,Fs,NFFT);
 
 axes(handles.axes3);
 switch get(handles.GraphMenu,'Value')
     case 2
-        plot(t,array(:,2))
+        plot(t,SoundData(:,1))
         title('PostFiltered Channel Two');
         ylabel('Filtered Amplitude');
         xlabel('Time (in seconds)');
