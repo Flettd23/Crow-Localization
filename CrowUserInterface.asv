@@ -262,14 +262,8 @@ switch get(handles.GraphMenu,'Value')
         beginFreq = Fmin/(fs/2);
         endFreq = Fmax/(fs/2);
         [b,a] = butter(n,[beginFreq, endFreq], 'bandpass');
-        startIdx = ss(index,1);
+        startIdx = ss(index,1)
         stopIdx = ss(index,2);
-        array = filter(b, a, array(startIdx:stopIdx));
-        Nfft = 256;    
-        win_size = 125;    
-        ovlap = 0.90;
-        [~,FFM_1,TTM_1,PM_1] = spectrogram(array,hanning(win_size),round(ovlap*win_size),Nfft,fs);
-        imagesc(TTM_1,FFM_1(1:Nfft/2+1)/1000,10*log10(PM_1(1:Nfft/2+1,:))/10e-6);axis xy;colormap(jet)
 end
 % L = length(array) ;
 % t=0:1/fs:(length(array)-1)/fs;

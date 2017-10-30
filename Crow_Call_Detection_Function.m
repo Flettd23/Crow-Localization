@@ -114,8 +114,5 @@ end
  Time_Array = Start_Stop;
 end
 
-     
-     
-
 
  

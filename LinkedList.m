@@ -1,8 +1,6 @@
 
-function listObject = LinkedList(values)
-  import java.util.ArrayList
-  data = reshape(values,1,[]);
-  val = ArrayList;
+function listObject = LinkedList()
+  x = 3;
   listObject = struct('display',@display_list,...
                       'addAfter',@add_element,...
                       'delete',@delete_element,...
@@ -25,9 +23,10 @@ function listObject = LinkedList(values)
     data(index) = [];
   end
 
-  function get_element(values)
+  function m = get_element(values)
     %# Deletes an element at an index in the list
-    val.add(val);
+    values = values + x
+    m = values;
   end
 
 

@@ -45,7 +45,7 @@ Fmin = 500; %Minimum Frequency
 Fmax = 2500; %Maximum Frequency
 
 [data11,Fs] = audioread(sfile1); data1 = data11(t_s*Fs:t_e*Fs,channel);
-[data22,Fs] = audioread(sfile2);data2 = data22(t_s*Fs:t_e*Fs,channel);
+[data22,Fs] = audioread(sfile2); data2 = data22(t_s*Fs:t_e*Fs,channel);
 [data33,Fs] = audioread(sfile3); data3 = data33(t_s3*Fs:t_e3*Fs,channel);
 [data44,Fs] = audioread(sfile4); data4 = data44(t_s*Fs:t_e*Fs,channel);
 
