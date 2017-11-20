@@ -6,17 +6,22 @@ function Time_Array = Crow_Call_Detection(Path,OutputFileName)
 
 %Import File
 [wave,fs] = audioread(Path); 
-L = length(wave) ;
+L = length(wave);
 NFFT = L;
- 
+
 %Creating Text file to store vital information for later analysis 
  fileName1=[OutputFileName,'.txt']; % Choose different extension if you like.
+ fileName2=[OutputFileName,'Energy.txt'];
  % open a file for writing
  fid = fopen(fileName1, 'wt'); 
+ fidE = fopen(fileName2, 'wt'); 
  if fid == -1
    error('Cannot open file: %s', fileName1); 
  end
  
+%  if fidE == -1
+%    error('Cannot open file: %s', fileName2); 
+%  end
    
 %Filtering out anything below 500 hz and above 2000 hz (subject to change)
 %Design a bandpass filter that filters out between 500 to 2000 Hz
@@ -50,6 +55,12 @@ for i = 1:Total
 end
 
 
+for i = 1 : length(energyData)
+    fprintf(fidE,'%g\t',energyData(i,:));
+    fprintf(fidE,'\n');
+end
+
+fclose(fidE);
 
 %% ***************** Detecting and Saving Possible Calls*******************
 

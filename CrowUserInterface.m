@@ -24,7 +24,7 @@ function varargout = CrowUserInterface(varargin)
 
 % Edit the above text to modify the response to help CrowUserInterface
 
-% Last Modified by GUIDE v2.5 30-Oct-2017 12:11:51
+% Last Modified by GUIDE v2.5 08-Nov-2017 00:23:17
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -46,7 +46,7 @@ end
 % End initialization code - DO NOT EDIT
 
 % --- Executes just before CrowUserInterface is made visible.
-function CrowUserInterface_OpeningFcn(hObject, eventdata, handles, varargin)
+function CrowUserInterface_OpeningFcn(hObject, ~, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -64,7 +64,7 @@ guidata(hObject, handles);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = CrowUserInterface_OutputFcn(hObject, eventdata, handles) 
+function varargout = CrowUserInterface_OutputFcn(~, ~, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -79,6 +79,16 @@ function Localize_Callback(hObject, eventdata, handles)
 % hObject    handle to Localize (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+AudioFile1 = get(handles.Audio1,'String');
+AudioFile2 = get(handles.Audio2,'String');
+AudioFile3 = get(handles.Audio3,'String');
+AudioFile4 = get(handles.Audio4,'String');
+ssIndexes = getappdata(0,'StartStopTimes');
+fs = getappdata(0,'fs');
+start = ssIndexes(2,1) / fs
+stop = ssIndexes(2,2) / fs
+[realloc,prelimloc] = Crow_2D_ExperimentFunctions(AudioFile1,AudioFile2,AudioFile3,AudioFile4,start,stop,1,false);
+
 
 
 % --- Executes on button press in NextCall.
@@ -115,11 +125,22 @@ function PlotCall_Callback(hObject, eventdata, handles)
 % hObject    handle to PlotCall (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-idx = getappdata(0,'index')
+idx = getappdata(0,'Index');
 if (idx + 1) <= 4
-    idx = idx + 1;  
+    idx = idx + 1; 
 end
-setappdata(0,'index',idx);
+setappdata(0,'Index',idx);
+
+% --- Executes on button press in plotprevious.
+function plotprevious_Callback(hObject, eventdata, handles)
+% hObject    handle to plotprevious (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+idx = getappdata(0,'Index');
+if (idx - 1) > 0
+    idx = idx - 1;    
+end
+setappdata(0,'Index',idx);
 
 % --- Executes during object creation, after setting all properties.
 function axes4_CreateFcn(hObject, eventdata, handles)
@@ -135,32 +156,19 @@ function playsound_Callback(hObject, eventdata, handles)
 % hObject    handle to playsound (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-%fs = getappdata(0,'fs');
+fs = getappdata(0,'fs');
 %soundData = getappdata(0,'Channel1');
 audioPath = get(handles.SoundFile,'String');
 %fileName = get(handles.OutputName,'String');
 channel1 = getappdata(0,'Channel1');
-idx = str2num(get(handles.StartTime,'String'));
-ssTime = getappdata(0,'Data');
+idx = getappdata(0,'Index');
+ssTime = getappdata(0,'StartStopTimes');
 startTime = ssTime(idx,1);
 stopTime = ssTime(idx,2);
 %startIdx = floor(fs * (startTime * 0.001));
 %stopIdx = floor(fs * (stopTime * 0.001));
 playFile = channel1(startTime:stopTime);
 sound(playFile,fs);
-
-
-
-% --- Executes on button press in plotprevious.
-function plotprevious_Callback(hObject, eventdata, handles)
-% hObject    handle to plotprevious (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-idx = getappdata(0,'index');
-if (idx - 1) <= 0
-    idx = idx - 1;    
-end
-setappdata(0,'index',idx);
 
 
 function OutputFile_Callback(hObject, eventdata, handles)
@@ -252,10 +260,67 @@ ss = getappdata(0,'StartStopTimes');
 index = 2;
 %Defining nesseary audio file details
 fs = getappdata(0,'fs');
-
 axes(handles.axes3);
 switch get(handles.GraphMenu,'Value')
+    case 4
+        Fmin = 500; %Minimum Frequency
+        Fmax = 2000; %Maximum Frequency
+        n = 7;
+        beginFreq = Fmin/(fs/2);
+        endFreq = Fmax/(fs/2);
+        [b,a] = butter(n,[beginFreq, endFreq], 'bandpass');
+        dt = 1/fs;
+        L = size(array,1);
+        t = (0:L-1)'*dt;
+        
+        figure(1)
+        plot(t,array(:,1))
+        title('test')
+        xlabel('Test')
+        
+        NFFT = 2^nextpow2(L);
+        Y = fft(array(:,1),NFFT)/L;
+        f = fs/2*linspace(0,1,NFFT/2+1);
+        
+        figure()
+        plot(f,2*abs(Y(1:NFFT/2+1))); hold on
+        title('Single-Sided Amplitude Spectrum of y(t)')
+        xlabel('Frequency (Hz)')
+        ylabel('|Y(f)|')
+        
+        filt_y = filter(b,a,array);
+
+        filt_Y = fft(filt_y,NFFT)/L;
+
+        % Plot the filtered spectrum of channel 1 from the original signal
+        plot(f,2*abs(filt_Y(1:NFFT/2+1))) 
+        title('Single-Sided Amplitude Spectrum of y(t)')
+        xlabel('Frequency (Hz)')
+        ylabel('|Y(f)|')
+        
     case 5
+        Fmin = 500; %Minimum Frequency
+        Fmax = 2000; %Maximum Frequency
+        n = 7;
+        beginFreq = Fmin/(fs/2);
+        endFreq = Fmax/(fs/2);
+        [b,a] = butter(n,[beginFreq, endFreq], 'bandpass');
+        startIdx = ss(index,1);
+        stopIdx = ss(index,2);
+        array = filter(b, a, array(startIdx:stopIdx));
+        %array = filter(b, a, array);
+        Nfft = 256;    
+        win_size = 125;    
+        ovlap = 0.90;
+        [~,FFM_1,TTM_1,PM_1] = spectrogram(array,hanning(win_size),round(ovlap*win_size),Nfft,fs);
+        imagesc(TTM_1,FFM_1(1:Nfft/2+1)/1000,10*log10(PM_1(1:Nfft/2+1,:))/10e-6);axis xy; 
+        colormap(jet);
+        ylabel('Frequency (KHz)');
+        xlabel('Time (s)');
+        caxis([-3e+7 -0.5e+7])
+        cBar = colorbar('Direction','reverse');
+        cBar.Label.String = 'The Derek Scale';
+    case 6
         Fmin = 500; %Minimum Frequency
         Fmax = 2500; %Maximum Frequency
         n = 7;
@@ -264,12 +329,19 @@ switch get(handles.GraphMenu,'Value')
         [b,a] = butter(n,[beginFreq, endFreq], 'bandpass');
         startIdx = ss(index,1);
         stopIdx = ss(index,2);
-        array = filter(b, a, array(startIdx:stopIdx));
+        array = filter(b, a, array);
+        %array = filter(b, a, array);
         Nfft = 256;    
         win_size = 125;    
         ovlap = 0.90;
         [~,FFM_1,TTM_1,PM_1] = spectrogram(array,hanning(win_size),round(ovlap*win_size),Nfft,fs);
-        imagesc(TTM_1,FFM_1(1:Nfft/2+1)/1000,10*log10(PM_1(1:Nfft/2+1,:))/10e-6);axis xy;colormap(jet)
+        imagesc(TTM_1,FFM_1(1:Nfft/2+1)/1000,10*log10(PM_1(1:Nfft/2+1,:))/10e-6);axis xy; 
+        colormap(jet);
+        ylabel('Frequency (KHz)');
+        xlabel('Time (s)');
+        caxis([-3e+7 -0.5e+7])
+        cBar = colorbar('Direction','reverse');
+        cBar.Label.String = 'The Derek Scale';
 end
 % L = length(array) ;
 % t=0:1/fs:(length(array)-1)/fs;
@@ -391,6 +463,147 @@ function AudioLoad_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function AudioLoad_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to AudioLoad (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Audio1_Callback(hObject, eventdata, handles)
+% hObject    handle to Audio1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Audio1 as text
+%        str2double(get(hObject,'String')) returns contents of Audio1 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Audio1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Audio1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+function LocalSSTimes_Callback(hObject, eventdata, handles)
+% hObject    handle to LocalSSTimes (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of LocalSSTimes as text
+%        str2double(get(hObject,'String')) returns contents of LocalSSTimes as a double
+
+% --- Executes on button press in LoadTimeLocal.
+function LoadTimeLocal_Callback(hObject, eventdata, handles)
+% hObject    handle to LoadTimeLocal (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% --- Executes on button press in AudioSelect1.
+function AudioSelect1_Callback(hObject, eventdata, handles)
+% hObject    handle to AudioSelect1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[FileName1,PathName] = uigetfile('*.wav','Select the first file');
+inFilePath = strcat(PathName,FileName1);
+set(handles.Audio1,'String',inFilePath);
+
+% --- Executes on button press in AudioSelect2.
+function AudioSelect2_Callback(hObject, eventdata, handles)
+% hObject    handle to AudioSelect2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[FileName1,PathName] = uigetfile('*.wav','Select the first file');
+inFilePath = strcat(PathName,FileName1);
+set(handles.Audio2,'String',inFilePath);
+
+% --- Executes on button press in AudioSelect3.
+function AudioSelect3_Callback(hObject, eventdata, handles)
+% hObject    handle to AudioSelect3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[FileName1,PathName] = uigetfile('*.wav','Select the first file');
+inFilePath = strcat(PathName,FileName1);
+set(handles.Audio3,'String',inFilePath);
+
+% --- Executes on button press in AudioSelect4.
+function AudioSelect4_Callback(hObject, eventdata, handles)
+% hObject    handle to AudioSelect4 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[FileName1,PathName] = uigetfile('*.wav','Select the first file');
+inFilePath = strcat(PathName,FileName1);
+set(handles.Audio4,'String',inFilePath);
+
+
+function Audio2_Callback(hObject, eventdata, handles)
+% hObject    handle to Audio2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Audio2 as text
+%        str2double(get(hObject,'String')) returns contents of Audio2 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Audio2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Audio2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Audio3_Callback(hObject, eventdata, handles)
+% hObject    handle to Audio3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Audio3 as text
+%        str2double(get(hObject,'String')) returns contents of Audio3 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Audio3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Audio3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Audio4_Callback(hObject, eventdata, handles)
+% hObject    handle to Audio4 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Audio4 as text
+%        str2double(get(hObject,'String')) returns contents of Audio4 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Audio4_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Audio4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
