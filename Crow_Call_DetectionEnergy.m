@@ -1,28 +1,52 @@
-function Time_Array = Crow_Call_Detection(Path,OutputFileName) 
+
 %% ***************** Crow Auto Detection ******************
                         %Derek Flett
-%close all
+close all
+clear all
 
 
 %Import File
-[wave,fs] = audioread(Path); 
-L = length(wave);
+[FileName1,PathName] = uigetfile('*.wav','Select the first file'); 
+[wave,fs] = audioread(FileName1); 
+L = length(wave) ;
 NFFT = L;
-
+ 
 %Creating Text file to store vital information for later analysis 
- fileName1=[OutputFileName,'.txt']; % Choose different extension if you like.
- fileName2=[OutputFileName,'Energy.txt'];
+ prompt = 'Please enter the file name you would like to save the sample to: ';
+ fileName = input(prompt,'s');
+ fileName1=[fileName,'.txt']; % Choose different extension if you like.
  % open a file for writing
  fid = fopen(fileName1, 'wt'); 
- fidE = fopen(fileName2, 'wt'); 
  if fid == -1
    error('Cannot open file: %s', fileName1); 
  end
  
-%  if fidE == -1
-%    error('Cannot open file: %s', fileName2); 
-%  end
-   
+%Uncomment to play unfiltered sound
+
+% pOrig = audioplayer(wave,fs);
+% pOrig.play;
+
+t=0:1/fs:(length(wave)-1)/fs; % and get sampling frequency */
+F = linspace(0,fs,NFFT);
+soundData(:,2) = wave(:,2);
+soundData(:,1) = t;
+soundDatafft = fft(wave(:,2),NFFT);
+%Plotting both channels pre-filtering
+figure('name','Pre and Post Filterd Sound','numbertitle','off')
+subplot(4,1,1)
+          plot(t,wave(:,2))
+          title('PreFiltered Channel One');
+          ylabel('Amplitude');
+          xlabel('Time (in seconds)');
+          
+subplot(4,1,2)
+          plot(F(1:NFFT/2+1),abs(soundDatafft(1:NFFT/2+1,1)))
+          title('PreFiltered FFT');
+          ylabel('Spectrum');
+          xlabel('Freq (in Hz)');
+          
+         
+          
 %Filtering out anything below 500 hz and above 2000 hz (subject to change)
 %Design a bandpass filter that filters out between 500 to 2000 Hz
 n = 7;
@@ -33,13 +57,35 @@ endFreq = 2000 / (fs/2);
 % Filter the signal
 fOut = filter(b, a, wave);
 
+%Uncomment to play the filtered sound clip
+
+%  p = audioplayer(fOut,fs);
+% p.play;
+
 %Storing Filtered sound file into new array 'wave2'
 wave2 = fOut;
+soundData2 = zeros(length(wave),2);
+soundData2(:,2) = wave2(:,2);
+soundData2(:,1) = 1:1:L;
+soundData2fft = fft(wave2(:,2),NFFT);
+subplot(4,1,3)
+          plot(t,wave2(:,1))
+          title('PostFiltered Channel One');
+          ylabel('Filtered Amplitude');
+          xlabel('Time (in seconds)');
+subplot(4,1,4)
+          plot(F(1:NFFT/2+1),abs(soundData2fft(1:NFFT/2+1,1)))
+          title('PostFiltered FFT');
+          ylabel('Filtered Spectrum');
+          xlabel('Freq (in Hz)');
 
+          
+          
+ 
 
           
 %% *****************  Caculating and Plotting Energy  *********************
-
+tic;
 
 %%Sum of energy Graph
 timeStep = 0.2; 
@@ -47,12 +93,23 @@ steps = timeStep/(1/fs);
 
 %Constants to find peaks in data 
 %minEnergy is the minimum energy you want a possible crow call to be detected
+numCalls = 10; %Number of calls you expect to hear 
+SoundDetect = zeros(numCalls,1); 
 energyData = zeros(L,1);
-Total = L-steps;
-for i = 1:Total
+for i = 1:L-steps
     energyData(i) = sum(wave2(i:i+steps,2).^2);
-    progressbar(i/Total)
 end
+toc;
+
+%Plotting Energy vs Time
+figure('name','Energy of Filtered Wave','numbertitle','off')
+plot(t(1:L),energyData);
+          xlabel('Time');
+          ylabel('Energy');
+          title('Energy vs Time');
+ hold on
+
+          
 
 %% ***************** Detecting and Saving Possible Calls*******************
 
@@ -60,7 +117,6 @@ end
 %Detecting Peaks and the time they appear
 minEnergy = 3;%minEnergy is the minimum energy you want a possible crow call to be detected
 numCall = 50; %Number of calls you expect to encounter
- 
 SoundDetect = zeros(numCall,2);
 ind = 1;
 max = 0;
@@ -85,7 +141,7 @@ for i = 1:L
 
 
                  Start_Stop(ind,1) = (i-maxIndex);
-                 Start_Stop(ind,2) = (i+0.3*fs+maxIndex);
+                 Start_Stop(ind,2) = (i+maxIndex);
                 
             end
         else   
@@ -100,37 +156,26 @@ end
           plot(SoundDetect(i,1),SoundDetect(i,2),'r*')
      end
  end
-
+ hold off
  
  %Printing Relevant Segments of the entire sound file to a new text file to
  %be later used by the User Interface in selecting which parts are to be
  %anaylized by Crow Localization
- 
-%  for i = 1:length(Start_Stop)
-%      if ((Start_Stop(i,1) ~= 0) && (Start_Stop(i,2) ~= 0)) 
-%           for k = 1:size(energyData(:,1))
-%               if (k >= Start_Stop(i,1)) && (k <= Start_Stop(i,2))
-%               fprintf(fidE,'%g\t',energyData(k,:));
-%               fprintf(fidE,'\n');
-%               end
-%           end
-%      end
-%      fprintf(fidE,'\n');
-%  end
- 
- fclose(fidE);
- 
  for i = 1:length(Start_Stop)
      if ((Start_Stop(i,1) ~= 0) && (Start_Stop(i,2) ~= 0)) 
-              fprintf(fid,'%g\t',Start_Stop(i,:));
-              fprintf(fid,'\n'); 
+          for k = 1:size(soundData2(:,1))
+              if (k >= Start_Stop(i,1)) && (k <= Start_Stop(i,2))
+              fprintf(fid,'%g\t',soundData2(k,:));
+              fprintf(fid,'\n');
+              end
+          end
      end
- end
      fprintf(fid,'\n');
+ end
  fclose(fid);
- 
- Time_Array = Start_Stop;
-end
+   
+     
+     
 
 
  

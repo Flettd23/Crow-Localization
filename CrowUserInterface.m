@@ -85,8 +85,8 @@ AudioFile3 = get(handles.Audio3,'String');
 AudioFile4 = get(handles.Audio4,'String');
 ssIndexes = getappdata(0,'StartStopTimes');
 fs = getappdata(0,'fs');
-start = ssIndexes(2,1) / fs
-stop = ssIndexes(2,2) / fs
+start = ssIndexes(2,1) / fs;
+stop = ssIndexes(2,2) / fs;
 [realloc,prelimloc] = Crow_2D_ExperimentFunctions(AudioFile1,AudioFile2,AudioFile3,AudioFile4,start,stop,1,false);
 
 
@@ -198,7 +198,11 @@ function InputSelect_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [FileName1,PathName] = uigetfile('*.wav','Select the first file');
-inFilePath = strcat(PathName,FileName1);
+if(strcmp(PathName,'C:\Users\Derek DeLizo\Documents\Crow-Localization\') == 1)
+    inFilePath = FileName1;
+else
+    inFilePath = strcat(PathName,FileName1);
+end
 set(handles.SoundFile,'String',inFilePath);
 
 % --- Executes on button press in LoadAudioFile.
@@ -207,7 +211,11 @@ function LoadAudioFile_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [FileName1,PathName] = uigetfile('*.wav','Select the first file');
-inFilePath = strcat(PathName,FileName1);
+if(strcmp(PathName,'C:\Users\Derek DeLizo\Documents\Crow-Localization\') == 1)
+    inFilePath = FileName1;
+else
+    inFilePath = strcat(PathName,FileName1);
+end
 set(handles.AudioLoad,'String',inFilePath);
 
 % --- Executes on button press in LoadDataText.
@@ -216,7 +224,12 @@ function LoadDataText_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [FileName1,PathName] = uigetfile('*.txt','Select the first file');
-outFilePath = strcat(PathName,FileName1);
+if(strcmp(PathName,'C:\Users\Derek DeLizo\Documents\Crow-Localization\') == 1)
+    outFilePath = FileName1;
+else
+    outFilePath = strcat(PathName,FileName1);
+end
+
 set(handles.OutputFile,'String',outFilePath);
 
 % --- Executes on button press in RunDetect.
@@ -227,7 +240,7 @@ function RunDetect_Callback(hObject, eventdata, handles)
 audioPath = get(handles.SoundFile,'String');
 fileName = get(handles.OutputName,'String');
 setSoundTable(audioPath);
-Time_Array = Crow_Call_Detection_Function(audioPath,fileName);
+Crow_Call_Detection_Function(audioPath,fileName);
 
 % --- Executes on button press in LoadData.
 function LoadData_Callback(hObject, eventdata, handles)
@@ -235,8 +248,9 @@ function LoadData_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 audioPath = get(handles.AudioLoad,'String');
-fileName = get(handles.OutputName,'String');
-startStopTimes = dlmread('OutputFile3.txt');
+fileName = get(handles.OutputFile,'String');
+startStopTimes = dlmread(fileName);
+setappdata(0,'OutputFile',fileName);
 setappdata(0,'StartStopTimes',startStopTimes);
 setappdata(0,'Index',1);
 setSoundTable(audioPath);
@@ -244,59 +258,53 @@ setSoundTable(audioPath);
 function setSoundTable(soundPath)
 [wave,fs] = audioread(soundPath);
 channel1 = wave(:,1);
+setappdata(0,'Length',length(wave));
 setappdata(0,'Channel1',channel1);
 setappdata(0,'fs',fs);
 
-% --- Executes on selection change in GraphMenu.
-function GraphMenu_Callback(hObject, eventdata, handles)
+%% ********************* Graphing Energy & Spectogram ***********************
 % hObject    handle to GraphMenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns GraphMenu contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from GraphMenu
+function GraphMenu_Callback(hObject, eventdata, handles)
 array = getappdata(0,'Channel1');
-ss = getappdata(0,'StartStopTimes');
+ss = getappdata(0,'StartStopTimes'); %%Start stop indexes matrik intialized
 index = 2;
 %Defining nesseary audio file details
 fs = getappdata(0,'fs');
 axes(handles.axes3);
 switch get(handles.GraphMenu,'Value')
     case 4
-        Fmin = 500; %Minimum Frequency
-        Fmax = 2000; %Maximum Frequency
-        n = 7;
-        beginFreq = Fmin/(fs/2);
-        endFreq = Fmax/(fs/2);
-        [b,a] = butter(n,[beginFreq, endFreq], 'bandpass');
-        dt = 1/fs;
-        L = size(array,1);
-        t = (0:L-1)'*dt;
+        %% ****************************************** Energy Graph ********************************************
+        filePath = getappdata(0,'OutputFile');
+        index = find(filePath == '.');
+        outFilePath = strcat([filePath(1:index-1) 'Energy' filePath(index:end)]);
+        array1 = dlmread(outFilePath);
+        %array1 = m(:,1);
+        L = length(array1) ;
+        t=0:1./fs:(length(array1)-1)./fs;
+        soundData2 = zeros(length(array1),2);
+        soundData2(:,2) = array1(:,2).^2;
+        %%Sum of energy Graph
+        timeStep = 0.002;
+        steps = timeStep/(1/fs);
+        energyData = zeros(L,1);
+        for i = 1:L-steps
+            energyData(i) = sum(soundData2(i:i+steps,2).^2);
+        end
         
-        figure(1)
-        plot(t,array(:,1))
-        title('test')
-        xlabel('Test')
+        hold on
+        plot(t(1:L),energyData);
+%         energyData(ss(index,1))
+%         energyData(1,1)
+%         size(energyData)
+%         plot(t(89818),energyData(89818),'o','g');
+%         plot(ss,energyData(),'o','r');
         
-        NFFT = 2^nextpow2(L);
-        Y = fft(array(:,1),NFFT)/L;
-        f = fs/2*linspace(0,1,NFFT/2+1);
-        
-        figure()
-        plot(f,2*abs(Y(1:NFFT/2+1))); hold on
-        title('Single-Sided Amplitude Spectrum of y(t)')
-        xlabel('Frequency (Hz)')
-        ylabel('|Y(f)|')
-        
-        filt_y = filter(b,a,array);
-
-        filt_Y = fft(filt_y,NFFT)/L;
-
-        % Plot the filtered spectrum of channel 1 from the original signal
-        plot(f,2*abs(filt_Y(1:NFFT/2+1))) 
-        title('Single-Sided Amplitude Spectrum of y(t)')
-        xlabel('Frequency (Hz)')
-        ylabel('|Y(f)|')
+        plot(t(1:L),energyData);
+        xlabel('Time');
+        ylabel('Energy');
+        title('Energy vs Time');
         
     case 5
         Fmin = 500; %Minimum Frequency
@@ -305,12 +313,12 @@ switch get(handles.GraphMenu,'Value')
         beginFreq = Fmin/(fs/2);
         endFreq = Fmax/(fs/2);
         [b,a] = butter(n,[beginFreq, endFreq], 'bandpass');
-        startIdx = ss(index,1);
-        stopIdx = ss(index,2);
+        startIdx = ss(index,1)
+        stopIdx = ss(index,2)
         array = filter(b, a, array(startIdx:stopIdx));
         %array = filter(b, a, array);
         Nfft = 256;    
-        win_size = 125;    
+        win_size = 256;    
         ovlap = 0.90;
         [~,FFM_1,TTM_1,PM_1] = spectrogram(array,hanning(win_size),round(ovlap*win_size),Nfft,fs);
         imagesc(TTM_1,FFM_1(1:Nfft/2+1)/1000,10*log10(PM_1(1:Nfft/2+1,:))/10e-6);axis xy; 
@@ -327,8 +335,6 @@ switch get(handles.GraphMenu,'Value')
         beginFreq = Fmin/(fs/2);
         endFreq = Fmax/(fs/2);
         [b,a] = butter(n,[beginFreq, endFreq], 'bandpass');
-        startIdx = ss(index,1);
-        stopIdx = ss(index,2);
         array = filter(b, a, array);
         %array = filter(b, a, array);
         Nfft = 256;    
@@ -515,7 +521,11 @@ function AudioSelect1_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [FileName1,PathName] = uigetfile('*.wav','Select the first file');
-inFilePath = strcat(PathName,FileName1);
+if(strcmp(PathName,'C:\Users\Derek DeLizo\Documents\Crow-Localization\') == 1)
+    inFilePath = FileName1;
+else
+    inFilePath = strcat(PathName,FileName1);
+end
 set(handles.Audio1,'String',inFilePath);
 
 % --- Executes on button press in AudioSelect2.
@@ -524,7 +534,11 @@ function AudioSelect2_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [FileName1,PathName] = uigetfile('*.wav','Select the first file');
-inFilePath = strcat(PathName,FileName1);
+if(strcmp(PathName,'C:\Users\Derek DeLizo\Documents\Crow-Localization\') == 1)
+    inFilePath = FileName1;
+else
+    inFilePath = strcat(PathName,FileName1);
+end
 set(handles.Audio2,'String',inFilePath);
 
 % --- Executes on button press in AudioSelect3.
@@ -533,7 +547,11 @@ function AudioSelect3_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [FileName1,PathName] = uigetfile('*.wav','Select the first file');
-inFilePath = strcat(PathName,FileName1);
+if(strcmp(PathName,'C:\Users\Derek DeLizo\Documents\Crow-Localization\') == 1)
+    inFilePath = FileName1;
+else
+    inFilePath = strcat(PathName,FileName1);
+end
 set(handles.Audio3,'String',inFilePath);
 
 % --- Executes on button press in AudioSelect4.
@@ -542,7 +560,11 @@ function AudioSelect4_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [FileName1,PathName] = uigetfile('*.wav','Select the first file');
-inFilePath = strcat(PathName,FileName1);
+if(strcmp(PathName,'C:\Users\Derek DeLizo\Documents\Crow-Localization\') == 1)
+    inFilePath = FileName1;
+else
+    inFilePath = strcat(PathName,FileName1);
+end
 set(handles.Audio4,'String',inFilePath);
 
 
