@@ -47,10 +47,10 @@ Fmax = 3500;                                                               % Max
 % Create the crow signal. If the function was called without values for
 % x_s, y_s or z_s, default values will be assigned.
 if ~exist('x_s','var')
-    x_s = rand;
+    x_s = 0.75;
 end
 if ~exist('y_s','var')
-    y_s = rand; 
+    y_s = 0.75; 
 end
 if ~exist('z_s','var')
     z_s = 0;
@@ -632,7 +632,7 @@ if hyp_plot == true
     plot (min_23(1), min_23(2), 'sk', 'markersize', 10, 'markerfacecolor', 'g');
 %           end
     if (Space == 2) || (Space == 7) || (Space == 8)% || (Space == 1)
-        Do nothing
+%         Do nothing
     else
     plot (min_24(1), min_24(2), 'sk', 'markersize', 10, 'markerfacecolor', 'c');
     end
@@ -642,6 +642,33 @@ if hyp_plot == true
     else
     plot (min_34(1), min_34(2), 'sk', 'markersize', 10, 'markerfacecolor', 'b');
     end
+    
+    Act_Hyps = 0;
+    if min_12(1)~=0
+        Act_Hyps = Act_Hyps + 1;
+    end
+    if min_13(1)~=0
+        Act_Hyps = Act_Hyps + 1;
+    end
+    if min_14(1)~=0
+        Act_Hyps = Act_Hyps + 1;
+    end
+    if min_23(1)~=0
+        Act_Hyps = Act_Hyps + 1;
+    end
+    if min_24(1)~=0
+        Act_Hyps = Act_Hyps + 1;
+    end
+    if min_34(1)~=0
+        Act_Hyps = Act_Hyps + 1;
+    end
+
+    
+    
+    Estimated_Location_x = (min_12(1)+min_13(1)+min_14(1)+min_23(1)+min_24(1)+min_34(1))/Act_Hyps;
+    Estimated_Location_y = (min_12(2)+min_13(2)+min_14(3)+min_23(2)+min_24(2)+min_34(1))/Act_Hyps;
+    
+    plot(Estimated_Location_x,Estimated_Location_y, 'd','markersize', 10, 'MarkerEdgeColor','r', 'markerfacecolor', 'r')
     grid on
     title ('Crow Localization')
     xlabel('x axis') % x-axis label

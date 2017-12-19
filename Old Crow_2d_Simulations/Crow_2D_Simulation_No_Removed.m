@@ -301,9 +301,9 @@ point_num = 10000;
 
 
 %Hyperbola between mics 1 and 2, plotted in BLACK
-if (Space == 4) || (Space == 6) || (Space == 9) 
-%     Do nothing
-else
+% if (Space == 4) || (Space == 6) || (Space == 9) 
+% %     Do nothing
+% else
     
 a_12 = abs(t_max_12)*c/2; %a value for the hypoerbola
 c_12 =  sqrt((x_r(1)-x_r(2))^2+(y_r(1)-y_r(2))^2+(z_r(1)-z_r(2))^2); %c value for the hyperbola
@@ -315,27 +315,27 @@ y_mid_12 = (y_r(1)+y_r(2))/2; %calculates the y-value at the midpoint between th
 %first row is the x values and the second row is the y values. See the
 %hyperbola_points function for more detail
 [h_12(1,:), h_12(2,:)] = hyperbola_points(a_12, b_12, x_mid_12, y_mid_12, x_r(1)-5, x_r(4)+5, y_r(1)-5, y_r(4)+5, point_num, 1);
-end
+% end
 
 %Hyperbola between mics 1 and 3, plotted in RED
-        if (Space == 3) || (Space == 8) || (Space == 9) || (Space == 2)
-%                  Do nothing
-        else
+%         if (Space == 3) || (Space == 8) || (Space == 9) || (Space == 2)
+% %                  Do nothing
+%         else
 a_13 = abs(t_max_13)*c/2;
 c_13 =  sqrt((x_r(1)-x_r(3))^2+(y_r(1)-y_r(3))^2+(z_r(1)-z_r(3))^2); 
 b_13 = sqrt(c_13^2-a_13^2);
 x_mid_13 = (x_r(1)+x_r(3))/2; 
 y_mid_13 = (y_r(1)+y_r(3))/2;
 [h_13(1,:), h_13(2,:)] = hyperbola_points(a_13, b_13, x_mid_13, y_mid_13, x_r(1)-5, x_r(4)+5, y_r(1)-5, y_r(4)+5, point_num, 2);
-end
+% end
 
 
 %Hyperbola between mics 1 and 4, plotted in PURPLE
 %(BW) I'm attempting to plot the hyperbola as if point 4 was on the x axis,
 %preserving distance between the points
-        if (Space == 1) || (Space == 9) 
-                 %Do nothing
-        else
+%         if (Space == 1) || (Space == 9) 
+%                  %Do nothing
+%         else
 
 x_4_rotated = x_r(1) + sqrt((x_r(4) - x_r(1))^2 + (y_r(4) - y_r(1))^2); %preserving the distance between points 1 and 4
 y_4_rotated = y_r(1); %rotating point 4 down to be in line horizontally with recorder 1
@@ -358,25 +358,25 @@ theta_14 = atan(abs(y_r(4) - y_r(1)) / abs(x_r(4) - x_r(1)));
 rotation = [cos(theta_14) -sin(theta_14);
              sin(theta_14) cos(theta_14)];
 h_14 = rotation * h_14;
-       end
+%        end
 
 
 %Hyperbola between mics 3 and 4, plotted in BLUE
-if (Space == 1) || (Space == 3) ||(Space == 4) || (Space == 6)
-%     Do nothing
-else
+% if (Space == 1) || (Space == 3) ||(Space == 4) || (Space == 6)
+% %     Do nothing
+% else
 a_34 = abs(t_max_34)*c/2;
 c_34 =  sqrt((x_r(3)-x_r(4))^2+(y_r(3)-y_r(4))^2+(z_r(3)-z_r(4))^2); 
 b_34 = sqrt(c_34^2-a_34^2);
 x_mid_34 = (x_r(3)+x_r(4))/2;
 y_mid_34 = (y_r(3)+y_r(4))/2;
 [h_34(1,:), h_34(2,:)] = hyperbola_points(a_34, b_34, x_mid_34, y_mid_34, x_r(1)-5, x_r(4)+5, y_r(1)-5, y_r(4)+5, point_num, 1);
-end
+% end
 
 %Hyperbola between mics 2 and 3, plotted in Green
-        if (Space == 3) || (Space == 7) 
+%         if (Space == 3) || (Space == 7) 
                  %Do nothing
-        else
+%         else
 x_3_rotated = x_r(2) - sqrt((x_r(2) - x_r(3))^2 + (y_r(2) - y_r(3))^2);
 y_3_rotated = y_r(2);
 a_23 = abs(t_max_23)*c/2;
@@ -396,19 +396,19 @@ rotation = [cos(theta_23) -sin(theta_23);
              sin(theta_23) cos(theta_23)];
 h_23 = rotation * h_23;
 h_23(1,:) = h_23(1,:) + x_r(2);
-        end
+%         end
 
 %Hyperbola between mics 2 and 4, plotted in Cyan
-if (Space == 2) || (Space == 7) || (Space == 8) || (Space == 1)
+% if (Space == 2) || (Space == 7) || (Space == 8) || (Space == 1)
     %Do nothing
-else
+% else
 a_24 = abs(t_max_24)*c/2;
 c_24 = sqrt((x_r(2) - x_r(4))^2 + (y_r(2) - y_r(4))^2 + (z_r(2) - z_r(4))^2);
 b_24 = sqrt(c_24^2 - a_24^2);
 x_mid_24 = (x_r(2) + x_r(4))/2;
 y_mid_24 = (y_r(2) + y_r(4))/2;
 [h_24(1,:), h_24(2,:)] = hyperbola_points(a_24, b_24, x_mid_24, y_mid_24, x_r(1)-5, x_r(4)+5, y_r(1)-5, y_r(4)+5, point_num, 2);
-end
+% end
 %% plotting the hyperbolas
 if hyp_plot == true %hyp_plot == TRUE -> plot hyperbolas, hyp_plot == FALSE -> no plotting
     figure (7); %creates a new window
@@ -424,45 +424,45 @@ if hyp_plot == true %hyp_plot == TRUE -> plot hyperbolas, hyp_plot == FALSE -> n
     legend('Actual Source Location','Receivers Location') %adds a legend to the plot
 
     %Plots the hyperbola between mics 1 and 2: Black
-    if (Space == 6) || (Space == 9) || (Space == 7) || (Space == 4)
+%     if (Space == 6) || (Space == 9) || (Space == 7) || (Space == 4)
        %Do nothing 
 %     else
     plot(h_12(1,:),h_12(2,:),'k'); 
-    end
+%     end
     
     %Plots the hyperbola between mics 1 and 3: Red
-    if (Space == 3) || (Space == 8) || (Space == 9)|| (Space == 2)
+%     if (Space == 3) || (Space == 8) || (Space == 9)|| (Space == 2)
        %Do nothing 
-    else
+%     else
     plot(h_13(1,:),h_13(2,:),'r'); 
-    end
-  if (Space == 1) || (Space == 9) 
+%     end
+%   if (Space == 1) || (Space == 9) 
                  %Do nothing
-        else
+%         else
     %Plots the hyperbola between mics 1 and 4: Purple
 
     plot(h_14(1,:), h_14(2,:), 'm');
     
-  end
+%   end
     %Plots the hyperbola between mics 3 and 4: Blue
-    if (Space == 1) || (Space== 3) ||(Space == 4) || (Space == 6)
+%     if (Space == 1) || (Space== 3) ||(Space == 4) || (Space == 6)
         %Do nothing
-    else
+%     else
     plot(h_34(1,:),h_34(2,:),'b');
-    end
+%     end
     
     %Plots the hyperbola between mics 2 and 4: Cyan
-    if (Space == 2) || (Space == 7) || (Space == 8) || (Space == 1)
+%     if (Space == 2) || (Space == 7) || (Space == 8) || (Space == 1)
         %Do nothing
-    else
+%     else
     plot(h_24(1,:), h_24(2,:), 'c');
-    end
-    if (Space == 3) || (Space == 7) 
+%     end
+%     if (Space == 3) || (Space == 7) 
                  %Do nothing
-        else
+%         else
     %Plots the hyperbola between mics 2 and 3: Green
     plot(h_23(1,:), h_23(2,:), 'g');
-    end
+%     end
 end
 %% **************************** Testing Accuracy **********************************
 % %The purpose of this section is to calculate the distance between the test
@@ -491,9 +491,9 @@ elseif (Space == 9);
         [rows, cols] = size(h_23); 
  end
 %sets the initial minimum to be at (0,0) and its distance to be infinity
- if (Space == 4) || (Space == 6) || (Space == 9)  || (Space == 7)
-     min_12 = [0, 0, inf];%Do nothing
- else
+%  if (Space == 4) || (Space == 6) || (Space == 9)  || (Space == 7)
+%      min_12 = [0, 0, inf];%Do nothing
+%  else
 min_12 = [0, 0, inf];
 %goes through every set of points in the hyperbola matrix
     for i = 1:cols
@@ -507,24 +507,24 @@ min_12 = [0, 0, inf];
         min_12 = [h_12(1,i), h_12(2,i), distance];
         end
     end
- end
+%  end
 
-if (Space == 3) || (Space == 8) || (Space == 9)|| (Space == 2)
-    min_13 = [0, 0, inf];%Do nothing
- else
+% if (Space == 3) || (Space == 8) || (Space == 9)|| (Space == 2)
+%     min_13 = [0, 0, inf];%Do nothing
+%  else
 min_13 = [0, 0, inf];
-for i = 1:cols
+    for i = 1:cols
     distance = sqrt((h_13(1,i) - x_s)^2 + (h_13(2,i) - y_s)^2);
-    if distance < min_13(3)
+     if distance < min_13(3)
         min_13 = [h_13(1,i), h_13(2,i), distance];
+        end
     end
-    end
-end
+% end
 
-if (Space == 1) || (Space == 9) 
-  min_14 = [0, 0, inf];  %Do nothing
+% if (Space == 1) || (Space == 9) 
+%   min_14 = [0, 0, inf];  %Do nothing
             
-else
+% else
 min_14 = [0, 0, inf];
     for i = 1:cols
     distance = sqrt((h_14(1,i) - x_s)^2 + (h_14(2,i) - y_s)^2);
@@ -532,11 +532,11 @@ min_14 = [0, 0, inf];
         min_14 = [h_14(1,i), h_14(2,i), distance];
         end
     end
-end
+% end
 
-if (Space == 3) || (Space == 7) 
-  min_23 = [0, 0, inf];  %Do nothing
-else
+% if (Space == 3) || (Space == 7) 
+%   min_23 = [0, 0, inf];  %Do nothing
+% else
     min_23 = [0, 0, inf];
     for i = 1:cols
         distance = sqrt((h_23(1,i) - x_s)^2 + (h_23(2,i) - y_s)^2);
@@ -544,11 +544,11 @@ else
         min_23 = [h_23(1,i), h_23(2,i), distance];
         end
     end
-end
+% end
 
-if (Space == 2) || (Space == 7) || (Space == 8) || (Space == 1)
-    min_24 = [0, 0, inf];%Do nothing
-else
+% if (Space == 2) || (Space == 7) || (Space == 8) || (Space == 1)
+%     min_24 = [0, 0, inf];%Do nothing
+% else
 min_24 = [0, 0, inf];
     for i = 1:cols
     distance = sqrt((h_24(1,i) - x_s)^2 + (h_24(2,i) - y_s)^2);
@@ -556,11 +556,11 @@ min_24 = [0, 0, inf];
         min_24 = [h_24(1,i), h_24(2,i), distance];
         end
     end
-end
+% end
 
- if (Space == 1) || (Space == 3) ||(Space == 4) || (Space == 6)
-     min_34 = [0, 0, inf];%Do nothing
- else
+%  if (Space == 1) || (Space == 3) ||(Space == 4) || (Space == 6)
+%      min_34 = [0, 0, inf];%Do nothing
+%  else
 min_34 = [0, 0, inf];
     for i = 1:cols
     distance = sqrt((h_34(1,i) - x_s)^2 + (h_34(2,i) - y_s)^2);
@@ -568,80 +568,81 @@ min_34 = [0, 0, inf];
         min_34 = [h_34(1,i), h_34(2,i), distance];
         end
     end
- end
+%  end
 
 %sets the return values (see first line of this function)
-if (Space == 4) || (Space == 6) || (Space == 9) || (Space == 7)
-    min_dist_12 = 0;%Do nothing
-else
+% if (Space == 4) || (Space == 6) || (Space == 9) || (Space == 7)
+%     min_dist_12 = 0;%Do nothing
+% else
 min_dist_12 = min_12(3);
-end
- if (Space == 3) || (Space == 7) 
-  min_dist_23 = 0; %Do nothing
+% end
+%  if (Space == 3) || (Space == 7) 
+%   min_dist_23 = 0; %Do nothing
                 
- else
+%  else
 min_dist_23 = min_23(3);
- end
+%  end
  
-if (Space == 1) || (Space == 3) || (Space == 4) || (Space == 6)
-    min_dist_34 = 0;%Do nothing
-else
+% if (Space == 1) || (Space == 3) || (Space == 4) || (Space == 6)
+%     min_dist_34 = 0;%Do nothing
+% else
 min_dist_34 = min_34(3);
-end
+% end
 
-if (Space == 1) || (Space == 9) 
-min_dist_14 = 0; %Do nothing
-else
+% if (Space == 1) || (Space == 9) 
+% min_dist_14 = 0; %Do nothing
+% else
 min_dist_14 = min_14(3);
-end
+% end
 
-if (Space == 3) || (Space == 8) || (Space == 9)|| (Space == 2)
-    min_dist_13 = 0;%Do nothing
-else
+% if (Space == 3) || (Space == 8) || (Space == 9)|| (Space == 2)
+%     min_dist_13 = 0;%Do nothing
+% else
 min_dist_13 = min_13(3);
-end
+% end
 
-if (Space == 2) || (Space == 7) || (Space == 8) || (Space == 1)
-    min_dist_24 = 0;%Do nothing
-else
+% if (Space == 2) || (Space == 7) || (Space == 8) || (Space == 1)
+%     min_dist_24 = 0;%Do nothing
+% else
 min_dist_24 = min_24(3);
-end
+% end
 
 %plots the points closest to source location
 if hyp_plot == true
     
-    if (Space == 4) || (Space == 6) || (Space == 9) || (Space == 7)
+%     if (Space == 4) || (Space == 6) || (Space == 9) || (Space == 7)
         %Do nothing
-    else
-    plot (min_12(1), min_12(2), 'sk', 'markersize', 10, 'markerfacecolor', 'k');
-    end
+%     else
+    plot (min_12(1), min_12(2), '*', 'markersize', 7, 'MarkerEdgeColor','r', 'markerfacecolor', 'r');
+%     end
     
-   if (Space == 3) || (Space == 8) || (Space == 9)|| (Space == 2)
+%    if (Space == 3) || (Space == 8) || (Space == 9)|| (Space == 2)
         %Do nothing
-    else
-    plot (min_13(1), min_13(2), 'sk', 'markersize', 10, 'markerfacecolor', 'r');
-    end
-  if (Space == 1) || (Space == 9) 
+%     else
+    plot (min_13(1), min_13(2), '*', 'markersize', 7, 'MarkerEdgeColor','r', 'markerfacecolor', 'r');
+%     end
+%   if (Space == 1) || (Space == 9) 
                  %Do nothing
-        else
-    plot (min_14(1), min_14(2), 'sk', 'markersize', 10, 'markerfacecolor', 'm');
-  end
-          if (Space == 3) || (Space == 7) 
+%         else
+    plot (min_14(1), min_14(2), '*', 'markersize', 7, 'MarkerEdgeColor','r', 'markerfacecolor', 'r');
+%   end
+%           if (Space == 3) || (Space == 7) 
                  %Do nothing
-        else
-    plot (min_23(1), min_23(2), 'sk', 'markersize', 10, 'markerfacecolor', 'g');
-          end
-    if (Space == 2) || (Space == 7) || (Space == 8)% || (Space == 1)
-        Do nothing
-    else
-    plot (min_24(1), min_24(2), 'sk', 'markersize', 10, 'markerfacecolor', 'c');
-    end
+%         else
+    plot (min_23(1), min_23(2), '*', 'markersize', 7, 'MarkerEdgeColor','r', 'markerfacecolor', 'r');
+%           end
+%     if (Space == 2) || (Space == 7) || (Space == 8)% || (Space == 1)
+%        Do nothing
+%     else
+    plot (min_24(1), min_24(2), '*', 'markersize', 7, 'MarkerEdgeColor','r', 'markerfacecolor', 'r');
+%     end
     
-    if (Space == 1) || (Space == 3) %|| (Space == 4) || (Space == 6)
+%     if (Space == 1) || (Space == 3) %|| (Space == 4) || (Space == 6)
         %Do nothing
-    else
-    plot (min_34(1), min_34(2), 'sk', 'markersize', 10, 'markerfacecolor', 'b');
-    end
+%     else
+    plot (min_34(1), min_34(2), '*', 'markersize', 7, 'MarkerEdgeColor','r', 'markerfacecolor', 'r');
+%     end
+plot(x_s,y_s, 'd','markersize', 10, 'MarkerEdgeColor','r', 'markerfacecolor', 'r')
     grid on
     title ('Crow Localization')
     xlabel('x axis') % x-axis label

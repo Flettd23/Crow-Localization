@@ -17,8 +17,8 @@ function [min_dist_12, min_dist_13, min_dist_14, min_dist_23, min_dist_24, min_d
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Receiver Locations
 receivernum = 4; % Number of Recorders
-x_r(1) = 0; x_r(2) = 1.0; x_r(3) = 0.0; x_r(4) = 1.0;
-y_r(1) = 0; y_r(2) = 0.0; y_r(3) = 1.0; y_r(4) = 1.0;
+x_r(1) = 0; x_r(2) = 3.0; x_r(3) = 0.0; x_r(4) = 3.0;
+y_r(1) = 0; y_r(2) = 0.0; y_r(3) = 3.0; y_r(4) = 3.0;
 z_r(1:receivernum) = 0;
 
 %% Read File or Create a crow signal
@@ -29,13 +29,13 @@ z_r(1:receivernum) = 0;
 % [FileName4,PathName] = uigetfile('*.wav','Select the forth file'); [data44,Fs] = audioread(FileName4); data4 = data44(:,1);
 % L = length(data1); 
 L = 1024; % length of signal in time
-Fs = 50000; % Hz
+Fs = 24000; % Hz
 c = 343; % speed of sound (m/s)
 NFFT = 2^nextpow2(L); % Length of the FFT
 t = (0:L-1)/Fs;    % Time vector (s)
 F = ((0:NFFT-1)/(NFFT))*Fs;   % Frequency vector (Hz)
 k = 2*pi*F/c;                                                              % Wave number
-Fmin = 1500;                                                               % Minimum Frequency (Hz)
+Fmin = 500;                                                               % Minimum Frequency (Hz)
 Fmax = 3500;                                                               % Maximum Frequency (Hz)
 [~,Imin] = min(abs(F-Fmin));                                               % Minimum Frequency Index
 [~,Imax] = min(abs(F-Fmax));                                               % Maximum Frequency Index
@@ -43,10 +43,10 @@ Fmax = 3500;                                                               % Max
 % Create the crow signal. If the function was called without values for
 % x_s, y_s or z_s, default values will be assigned.
 if ~exist('x_s','var')
-    x_s = 0.7;
+    x_s = 2.0;
 end
 if ~exist('y_s','var')
-    y_s = 0.2; 
+    y_s = 2.0; 
 end
 if ~exist('z_s','var')
     z_s = 0;
@@ -327,10 +327,10 @@ if hyp_plot == true %hyp_plot == TRUE -> plot hyperbolas, hyp_plot == FALSE -> n
 
     hold on; %stops changes being made to the configuration of the plots
     plot(x_s,y_s,'dk','MarkerFaceColor','y','markersize',14,'LineWidth',1); %plots a Green diamond at the simulated source location
-    plot(x_r(1),y_r(1),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); %plots a blue dot at the location of the four microphones
-    plot(x_r(2),y_r(2),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); 
-    plot(x_r(3),y_r(3),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
-    plot(x_r(4),y_r(4),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+    plot(x_r(1),y_r(1),'o','MarkerFaceColor','b','markersize',11,'LineWidth',1); %plots a blue dot at the location of the four microphones
+    plot(x_r(2),y_r(2),'o','MarkerFaceColor','b','markersize',11,'LineWidth',1); 
+    plot(x_r(3),y_r(3),'o','MarkerFaceColor','b','markersize',11,'LineWidth',1);
+    plot(x_r(4),y_r(4),'o','MarkerFaceColor','b','markersize',11,'LineWidth',1);
     legend('Actual Source Location','Receivers Location') %adds a legend to the plot
 
     %Plots the hyperbola between mics 1 and 2: Black
@@ -425,10 +425,10 @@ min_dist_24 = min_24(3);
 
 %plots the points closest to source location
 if hyp_plot == true
-    plot (min_12(1), min_12(2), 'sk', 'markersize', 10, 'markerfacecolor', 'k');
-    plot (min_13(1), min_13(2), 'sk', 'markersize', 10, 'markerfacecolor', 'r');
-    plot (min_14(1), min_14(2), 'sk', 'markersize', 10, 'markerfacecolor', 'm');
-    plot (min_23(1), min_23(2), 'sk', 'markersize', 10, 'markerfacecolor', 'g');
-    plot (min_24(1), min_24(2), 'sk', 'markersize', 10, 'markerfacecolor', 'c');
-    plot (min_34(1), min_34(2), 'sk', 'markersize', 10, 'markerfacecolor', 'b');
+    plot (min_12(1), min_12(2), '*', 'markersize', 10, 'MarkerEdgeColor','r', 'markerfacecolor', 'r');
+    plot (min_13(1), min_13(2), '*', 'markersize', 10, 'MarkerEdgeColor','r','markerfacecolor', 'r');
+    plot (min_14(1), min_14(2), '*', 'markersize', 10, 'MarkerEdgeColor','r','markerfacecolor', 'r');
+    plot (min_23(1), min_23(2), '*', 'markersize', 10, 'MarkerEdgeColor','r', 'markerfacecolor', 'r');
+    plot (min_24(1), min_24(2), '*', 'markersize', 10, 'MarkerEdgeColor','r','markerfacecolor', 'r');
+    plot (min_34(1), min_34(2), '*', 'markersize', 10, 'MarkerEdgeColor','r','markerfacecolor', 'r');
 end
