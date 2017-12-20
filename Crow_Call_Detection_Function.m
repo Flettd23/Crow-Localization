@@ -1,4 +1,4 @@
-function Time_Array = Crow_Call_Detection(Path,OutputFileName) 
+function [Time_Array,SoundDetect,Start_Stop] = Crow_Call_Detection(Path,OutputFileName) 
 %% ***************** Crow Auto Detection ******************
                         %Derek Flett
 %close all
