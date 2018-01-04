@@ -1,0 +1,4 @@
+- Spectogram needs to sync with current call playing
+- Plot whole audio clip as a spectogram
+- Localization thicker lines larger font
+- Start dynamic UI changing

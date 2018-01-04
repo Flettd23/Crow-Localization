@@ -1,4 +1,4 @@
-function Time_Array = Crow_Call_Detection(Path,OutputFileName) 
+function [Time_Array,SoundDetect,Start_Stop] = Crow_Call_Detection(Path,OutputFileName) 
 %% ***************** Crow Auto Detection ******************
                         %Derek Flett
 %close all
@@ -6,17 +6,22 @@ function Time_Array = Crow_Call_Detection(Path,OutputFileName)
 
 %Import File
 [wave,fs] = audioread(Path); 
-L = length(wave) ;
+L = length(wave);
 NFFT = L;
- 
+
 %Creating Text file to store vital information for later analysis 
  fileName1=[OutputFileName,'.txt']; % Choose different extension if you like.
+ fileName2=[OutputFileName,'Energy.txt'];
  % open a file for writing
  fid = fopen(fileName1, 'wt'); 
+ fidE = fopen(fileName2, 'wt'); 
  if fid == -1
    error('Cannot open file: %s', fileName1); 
  end
  
+%  if fidE == -1
+%    error('Cannot open file: %s', fileName2); 
+%  end
    
 %Filtering out anything below 500 hz and above 2000 hz (subject to change)
 %Design a bandpass filter that filters out between 500 to 2000 Hz
@@ -48,8 +53,6 @@ for i = 1:Total
     energyData(i) = sum(wave2(i:i+steps,2).^2);
     progressbar(i/Total)
 end
-
-
 
 %% ***************** Detecting and Saving Possible Calls*******************
 
@@ -102,6 +105,21 @@ end
  %Printing Relevant Segments of the entire sound file to a new text file to
  %be later used by the User Interface in selecting which parts are to be
  %anaylized by Crow Localization
+ 
+%  for i = 1:length(Start_Stop)
+%      if ((Start_Stop(i,1) ~= 0) && (Start_Stop(i,2) ~= 0)) 
+%           for k = 1:size(energyData(:,1))
+%               if (k >= Start_Stop(i,1)) && (k <= Start_Stop(i,2))
+%               fprintf(fidE,'%g\t',energyData(k,:));
+%               fprintf(fidE,'\n');
+%               end
+%           end
+%      end
+%      fprintf(fidE,'\n');
+%  end
+ 
+ fclose(fidE);
+ 
  for i = 1:length(Start_Stop)
      if ((Start_Stop(i,1) ~= 0) && (Start_Stop(i,2) ~= 0)) 
               fprintf(fid,'%g\t',Start_Stop(i,:));
@@ -113,9 +131,6 @@ end
  
  Time_Array = Start_Stop;
 end
-
-     
-     
 
 
  

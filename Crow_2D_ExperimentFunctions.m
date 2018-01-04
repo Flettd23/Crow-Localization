@@ -1,7 +1,7 @@
- function [preloc, realloc] = Crow_2D_ExperimentFunctions(sfile1, sfile2, sfile3, sfile4, ts, te, channel, hyp_plot)
+ function [preloc, realloc] = Crow_2D_ExperimentFunctions(sfile1, sfile2, sfile3, sfile4, ts, te, channel, hypplot)
 % clear all;
 % close all;
-hyp_plot = true;
+hyp_plot = hypplot;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %-----------------------Crow_2D_Experiment---------------------------------
 % This function attempts to locate a crow within an array of 4 microphones. 
@@ -68,34 +68,37 @@ t = (0:L-1)/Fs;    % Time vector (s)
 F = ((0:NFFT-1)/(NFFT))*Fs;   % Frequency vector (Hz)
 k = 2*pi*F/c;                 % Wave number
 
-%% Plot Spectrogram
-Nfft = 256;    win_size = 125;    ovlap = 0.90;
-[~,FFM_1,TTM_1,PM_1] = spectrogram(data1,hanning(win_size),round(ovlap*win_size),Nfft,Fs);
-[~,FFM_2,TTM_2,PM_2] = spectrogram(data2,hanning(win_size),round(ovlap*win_size),Nfft,Fs);
-[~,FFM_3,TTM_3,PM_3] = spectrogram(data3,hanning(win_size),round(ovlap*win_size),Nfft,Fs);
-[~,FFM_4,TTM_4,PM_4] = spectrogram(data4,hanning(win_size),round(ovlap*win_size),Nfft,Fs);
-
-figure(6)
-subplot(4,1,1)
-imagesc(TTM_1,FFM_1(1:Nfft/2+1)/1000,10*log10(PM_1(1:Nfft/2+1,:))/10e-6);axis xy;colormap(jet)
-subplot(4,1,2)
-imagesc(TTM_2,FFM_2(1:Nfft/2+1)/1000,10*log10(PM_2(1:Nfft/2+1,:))/10e-6);axis xy;colormap(jet)
-subplot(4,1,3)
-imagesc(TTM_3,FFM_3(1:Nfft/2+1)/1000,10*log10(PM_3(1:Nfft/2+1,:))/10e-6);axis xy;colormap(jet)
-subplot(4,1,4)
-imagesc(TTM_4,FFM_4(1:Nfft/2+1)/1000,10*log10(PM_4(1:Nfft/2+1,:))/10e-6);axis xy;colormap(jet)
-xlabel('Time(s)')
-ylabel('Frequency(kHz)')
-title('Element 1')
+% %% Plot Spectrogram
+% if hyp_plot ==true
+% Nfft = 256;    win_size = 125;    ovlap = 0.90;
+% [~,FFM_1,TTM_1,PM_1] = spectrogram(data1,hanning(win_size),round(ovlap*win_size),Nfft,Fs);
+% [~,FFM_2,TTM_2,PM_2] = spectrogram(data2,hanning(win_size),round(ovlap*win_size),Nfft,Fs);
+% [~,FFM_3,TTM_3,PM_3] = spectrogram(data3,hanning(win_size),round(ovlap*win_size),Nfft,Fs);
+% [~,FFM_4,TTM_4,PM_4] = spectrogram(data4,hanning(win_size),round(ovlap*win_size),Nfft,Fs);
+% 
+% figure(6)
+% subplot(4,1,1)
+% imagesc(TTM_1,FFM_1(1:Nfft/2+1)/1000,10*log10(PM_1(1:Nfft/2+1,:))/10e-6);axis xy;colormap(jet)
+% subplot(4,1,2)
+% imagesc(TTM_2,FFM_2(1:Nfft/2+1)/1000,10*log10(PM_2(1:Nfft/2+1,:))/10e-6);axis xy;colormap(jet)
+% subplot(4,1,3)
+% imagesc(TTM_3,FFM_3(1:Nfft/2+1)/1000,10*log10(PM_3(1:Nfft/2+1,:))/10e-6);axis xy;colormap(jet)
+% subplot(4,1,4)
+% imagesc(TTM_4,FFM_4(1:Nfft/2+1)/1000,10*log10(PM_4(1:Nfft/2+1,:))/10e-6);axis xy;colormap(jet)
+% xlabel('Time(s)')
+% ylabel('Frequency(kHz)')
+% title('Element 1')
+% else
+% end
 %%
 [~,Imin] = min(abs(F-Fmin));                                               % Minimum Frequency Index
 [~,Imax] = min(abs(F-Fmax));                                               % Maximum Frequency Index
 
 %If the funciton was called without a value for 'hyp_plot', the default
 %is set to true (yes plots)
-if ~exist('hyp_plot', 'var')
-    hyp_plot = true;
-end
+% if ~exist('hyp_plot', 'var')
+%     hyp_plot = true;
+% end
 
 %*********************** Signal to Noise Ratio ********************
 % 
@@ -289,47 +292,50 @@ y_mid_24 = (y_r(2) + y_r(4))/2;
 
 
 
-%% plotting the hyperbolas
-if hyp_plot == true %hyp_plot == TRUE -> plot hyperbolas, hyp_plot == FALSE -> no plotting
-    figure (7); %creates a new window
-    xlim([x_r(1)-.01 x_r(2)+0.01]); %restricts the plot window 
-    ylim([y_r(1)-0.01 x_r(2)+.01]); %restricts the plot window
-
-    hold on; %stops changes being made to the configuration of the plots
-%     plot(x_s,y_s,'dk','MarkerFaceColor','y','markersize',14,'LineWidth',1); %plots a Green diamond at the simulated source location
-    plot(x_r(1),y_r(1),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); %plots a blue dot at the location of the four microphones
-    plot(x_r(2),y_r(2),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); 
-    plot(x_r(3),y_r(3),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
-    plot(x_r(4),y_r(4),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
-    legend('Actual Source Location','Receivers Location') %adds a legend to the plot
-
-    %Plots the hyperbola between mics 1 and 2: Black
-
-    plot(h_12(1,:),h_12(2,:),'k'); 
-
-    
-    %Plots the hyperbola between mics 1 and 3: Red
-
-    plot(h_13(1,:),h_13(2,:),'r'); 
-
-    %Plots the hyperbola between mics 1 and 4: Magenta
-
-    plot(h_14(1,:), h_14(2,:), 'm');
-  
-
-    %Plots the hyperbola between mics 3 and 4: Blue
-
-    plot(h_34(1,:),h_34(2,:),'b');
-
-    
-    %Plots the hyperbola between mics 2 and 4: Cyan
-
-    plot(h_24(1,:), h_24(2,:), 'c');
-
- 
-    %Plots the hyperbola between mics 2 and 3: Green
-    plot(h_23(1,:), h_23(2,:), 'g');
-  
+% %% plotting the hyperbolas
+% if hyp_plot == true %hyp_plot == TRUE -> plot hyperbolas, hyp_plot == FALSE -> no plotting
+%     figure (7); %creates a new window
+%     xlim([x_r(1)-.01 x_r(2)+0.01]); %restricts the plot window 
+%     ylim([y_r(1)-0.01 x_r(2)+.01]); %restricts the plot window
+% 
+%     hold on; %stops changes being made to the configuration of the plots
+% %     plot(x_s,y_s,'dk','MarkerFaceColor','y','markersize',14,'LineWidth',1); %plots a Green diamond at the simulated source location
+%     plot(x_r(1),y_r(1),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); %plots a blue dot at the location of the four microphones
+%     plot(x_r(2),y_r(2),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); 
+%     plot(x_r(3),y_r(3),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+%     plot(x_r(4),y_r(4),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+%  
+% 
+%     %Plots the hyperbola between mics 1 and 2: Black
+% 
+%     plot(h_12(1,:),h_12(2,:),'k'); 
+% 
+%     
+%     %Plots the hyperbola between mics 1 and 3: Red
+% 
+%     plot(h_13(1,:),h_13(2,:),'r'); 
+% 
+%     %Plots the hyperbola between mics 1 and 4: Magenta
+% 
+%     plot(h_14(1,:), h_14(2,:), 'm');
+%   
+% 
+%     %Plots the hyperbola between mics 3 and 4: Blue
+% 
+%     plot(h_34(1,:),h_34(2,:),'b');
+% 
+%     
+%     %Plots the hyperbola between mics 2 and 4: Cyan
+% 
+%     plot(h_24(1,:), h_24(2,:), 'c');
+% 
+%  
+%     %Plots the hyperbola between mics 2 and 3: Green
+%     plot(h_23(1,:), h_23(2,:), 'g');
+%   
+%     legend('Receiver 1','Receiver 2','Receiver 3','Receiver 4','hyperbola 12','hyperbola 13','hyperbola 14','hyperbola 34', 'hyperbola 24', 'hyperbola 23');
+% else
+% end
     
 %     
 % %%%%%%%%%%%%%%%%%%    CALCULATION OF INTERSECTIONS  %% %%%%%%%%%%%%%%%
@@ -343,55 +349,55 @@ if hyp_plot == true %hyp_plot == TRUE -> plot hyperbolas, hyp_plot == FALSE -> n
 
             %Intersections between h_12 and the others
     qmin1213 = hypsect(h_12, h_13, t_max_12, t_max_13);
-    plot (qmin1213(1), qmin1213(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin1213(1), qmin1213(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
     qmin1214 = hypsect(h_12, h_14, t_max_12, t_max_14);
-    plot (qmin1214(1), qmin1214(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin1214(1), qmin1214(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
     qmin1223 = hypsectB(h_23, h_12, t_max_23, t_max_12);
-    plot (qmin1223(1), qmin1223(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin1223(1), qmin1223(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
     qmin1224 = hypsect(h_12, h_24, t_max_12, t_max_24);
-    plot (qmin1224(1), qmin1224(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin1224(1), qmin1224(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
             %Intersections between h_13 and the others (exlcuding those
             %already calculated above)
     
     qmin1314 = hypsect(h_13, h_14, t_max_13, t_max_14);
-    plot (qmin1314(1), qmin1314(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin1314(1), qmin1314(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
     qmin1323 = hypsectB(h_23, h_13, t_max_23, t_max_13);
-    plot (qmin1323(1), qmin1323(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin1323(1), qmin1323(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
       
     qmin1334 = hypsect(h_13, h_34, t_max_13, t_max_34);
-    plot (qmin1334(1), qmin1334(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin1334(1), qmin1334(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
     %Intersections between h_14 and the others (exlcuding those
             %already calculated above)
     
     qmin1423 = hypsectB(h_23, h_14, t_max_23, t_max_14);
-    plot (qmin1423(1), qmin1423(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin1423(1), qmin1423(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
     qmin1424 = hypsect(h_14, h_24, t_max_14, t_max_24);
-    plot (qmin1424(1), qmin1424(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin1424(1), qmin1424(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
     qmin1434 = hypsect(h_14, h_34, t_max_14, t_max_34);
-    plot (qmin1434(1), qmin1434(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin1434(1), qmin1434(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
     %Intersections between h_23 and the others (exlcuding those
             %already calculated above)
     
     qmin2324 = hypsectB(h_23, h_24, t_max_23, t_max_24);
-    plot (qmin2324(1), qmin2324(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin2324(1), qmin2324(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
     qmin2334 = hypsectB(h_23, h_34, t_max_23, t_max_34);
-    plot (qmin2334(1), qmin2334(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin2334(1), qmin2334(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
     %Intersections between h_24 and the others (exlcuding those
             %already calculated above)
     
     qmin2434 = hypsect(h_24, h_34, t_max_24, t_max_34);
-    plot (qmin2434(1), qmin2434(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+%     plot (qmin2434(1), qmin2434(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
     %------------------CALCULATION OF PRELIMINARY LOCATION----------------------%
     %   The preliminary calculation is calculated by taking the mean
@@ -403,7 +409,7 @@ if hyp_plot == true %hyp_plot == TRUE -> plot hyperbolas, hyp_plot == FALSE -> n
     preymatrix = [qmin1213(2),qmin1214(2),qmin1223(2),qmin1224(2),qmin1314(2),qmin1323(2),qmin1334(2),qmin1423(2),qmin1424(2),qmin1434(2),qmin2324(2),qmin2334(2),qmin2434(2)];
     
     preloc = [mean(meanmaker(prexmatrix)),mean(meanmaker(preymatrix))];
-    plot (preloc(1), preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
+%     plot (preloc(1), preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
     
     
 %%%%%%%%%%%CREATING SECTIONS%%%%%%%%    
@@ -521,16 +527,101 @@ if (Space == 9)
 end
 
 
-    plot (realloc(1), realloc(2),'dk','MarkerFaceColor','c','markersize',11,'LineWidth',1);
+%     plot (realloc(1), realloc(2),'dk','MarkerFaceColor','c','markersize',11,'LineWidth',1);
     
+    %% plotting the hyperbolas
+if hyp_plot == true %hyp_plot == TRUE -> plot hyperbolas, hyp_plot == FALSE -> no plotting
+    figure (7); %creates a new window
+    xlim([x_r(1)-.01 x_r(2)+0.01]); %restricts the plot window 
+    ylim([y_r(1)-0.01 x_r(2)+.01]); %restricts the plot window
 
+    hold on; %stops changes being made to the configuration of the plots
+%     plot(x_s,y_s,'dk','MarkerFaceColor','y','markersize',14,'LineWidth',1); %plots a Green diamond at the simulated source location
+    plot(x_r(1),y_r(1),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); %plots a blue dot at the location of the four microphones
+    plot(x_r(2),y_r(2),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); 
+    plot(x_r(3),y_r(3),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+    plot(x_r(4),y_r(4),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+    
+    leg1 = plot(x_r(1),y_r(1),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+ 
+
+    %Plots the hyperbola between mics 1 and 2: Black
+
+    plot(h_12(1,:),h_12(2,:),'k'); 
+    leg2 =    plot(h_12(1,:),h_12(2,:),'k'); 
+
+    
+    %Plots the hyperbola between mics 1 and 3: Red
+
+    plot(h_13(1,:),h_13(2,:),'r'); 
+    leg3 = plot(h_13(1,:),h_13(2,:),'r'); 
+
+    %Plots the hyperbola between mics 1 and 4: Magenta
+
+    plot(h_14(1,:), h_14(2,:), 'm');
+    leg4 =  plot(h_14(1,:), h_14(2,:), 'm');
+  
+
+    %Plots the hyperbola between mics 3 and 4: Blue
+
+    plot(h_34(1,:),h_34(2,:),'b');
+    leg5 =  plot(h_34(1,:),h_34(2,:),'b');
+
+    
+    %Plots the hyperbola between mics 2 and 4: Cyan
+
+    plot(h_24(1,:), h_24(2,:), 'c');
+    leg6 =  plot(h_24(1,:), h_24(2,:), 'c');
+
+ 
+    %Plots the hyperbola between mics 2 and 3: Green
+    plot(h_23(1,:), h_23(2,:), 'g');
+    leg7 = plot(h_23(1,:), h_23(2,:), 'g');
+    
+    %interesections (red diamonds)%
+plot (qmin1213(1), qmin1213(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+plot (qmin1214(1), qmin1214(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+plot (qmin1223(1), qmin1223(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+plot (qmin1224(1), qmin1224(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+plot (qmin1314(1), qmin1314(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+plot (qmin1323(1), qmin1323(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+plot (qmin1334(1), qmin1334(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+plot (qmin1423(1), qmin1423(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+plot (qmin1424(1), qmin1424(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+plot (qmin1434(1), qmin1434(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+plot (qmin2324(1), qmin2324(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+plot (qmin2334(1), qmin2334(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+plot (qmin2434(1), qmin2434(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+
+leg8 = plot (qmin1213(1), qmin1213(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+
+%final locations: preliminary (magenta diamond) and final "real" location
+%(cyan diamond)%
+plot (preloc(1), preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
+leg9 = plot (preloc(1), preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
+plot (realloc(1), realloc(2),'dk','MarkerFaceColor','c','markersize',11,'LineWidth',1);
+leg10 = plot (realloc(1), realloc(2),'dk','MarkerFaceColor','c','markersize',11,'LineWidth',1);
+
+legend([leg1, leg2, leg3, leg4, leg5, leg6, leg7, leg8, leg9, leg10],{'Reciever Location', 'Hyperbola 12',...
+    'Hyperbola 13','Hyperbola 14','Hyperbola 34', 'Hyperbola 24', 'Hyperbola 23', 'Intersections',...
+    'Estimated Location', 'Real Location'});
+  
+%     legend('Receiver 1','Receiver 2','Receiver 3','Receiver 4','hyperbola 12',...
+%         'hyperbola 13','hyperbola 14','hyperbola 34', 'hyperbola 24', 'hyperbola 23',...
+%         'Intersection 12-13','Intersection 12-14','Intersection 12-23','Intersection 12-24','Intersection 13-14','Intersection 13-23',...
+%         'Intersection 13-34','Intersection 14-23','Intersection 14-24','Intersection 14-34','Intersection 23-24','Intersection 23-34',...
+%         'Intersection 24-34','Preliminary Location','Real Location');
+    
+    
     grid on
     title ('Crow Localization')
     xlabel('x axis') % x-axis label
     ylabel('y axis') % y-axis label
     pbaspect([1 1 1])
+else
 end
- end
+end
+
 %%%%%%% HYPSECT FUNCTION (For Type I Intersections)%%%%%%%%
 % This is the function called to calculate the intersections of hyperbolae.
 % It compares each point on the first hyperbola within a given quadrant to
