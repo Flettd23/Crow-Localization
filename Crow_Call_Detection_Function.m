@@ -1,4 +1,4 @@
-function [Time_Array,SoundDetect,Start_Stop] = Crow_Call_Detection(Path,OutputFileName) 
+function Time_Array = Crow_Call_Detection(Path,OutputFileName) 
 %% ***************** Crow Auto Detection ******************
                         %Derek Flett
 %close all
@@ -19,10 +19,10 @@ NFFT = L;
    error('Cannot open file: %s', fileName1); 
  end
  
-%  if fidE == -1
-%    error('Cannot open file: %s', fileName2); 
-%  end
-   
+ if fidE == -1
+   error('Cannot open file: %s', fileName2); 
+ end
+ 
 %Filtering out anything below 500 hz and above 2000 hz (subject to change)
 %Design a bandpass filter that filters out between 500 to 2000 Hz
 n = 7;
@@ -37,7 +37,6 @@ fOut = filter(b, a, wave);
 wave2 = fOut;
 
 
-          
 %% *****************  Caculating and Plotting Energy  *********************
 
 
@@ -106,28 +105,23 @@ end
  %be later used by the User Interface in selecting which parts are to be
  %anaylized by Crow Localization
  
-%  for i = 1:length(Start_Stop)
-%      if ((Start_Stop(i,1) ~= 0) && (Start_Stop(i,2) ~= 0)) 
-%           for k = 1:size(energyData(:,1))
-%               if (k >= Start_Stop(i,1)) && (k <= Start_Stop(i,2))
-%               fprintf(fidE,'%g\t',energyData(k,:));
-%               fprintf(fidE,'\n');
-%               end
-%           end
-%      end
-%      fprintf(fidE,'\n');
-%  end
- 
- fclose(fidE);
+
  
  for i = 1:length(Start_Stop)
      if ((Start_Stop(i,1) ~= 0) && (Start_Stop(i,2) ~= 0)) 
-              fprintf(fid,'%g\t',Start_Stop(i,:));
-              fprintf(fid,'\n'); 
+           fprintf(fid,'%g\t',[Start_Stop(i,:) SoundDetect(i,:)]);
+           fprintf(fid,'\n');
      end
  end
-     fprintf(fid,'\n');
+ 
+ for k = 1:size(energyData(:,1))
+     fprintf(fidE,'%g\t',energyData(k,:));
+     fprintf(fidE,'\n');
+ end
+ fprintf(fid,'\n');
+ fprintf(fidE,'\n');
  fclose(fid);
+ fclose(fidE);
  
  Time_Array = Start_Stop;
 end
