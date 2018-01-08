@@ -1,4 +1,4 @@
- function [preloc, realloc] = Crow_2D_ExperimentFunctions(sfile1, sfile2, sfile3, sfile4, ts, te, channel, hypplot)
+ function [preloc, realloc] = Crow_2D_ExperimentFunctions(sfile1, sfile2, sfile3, sfile4, startIdx, endIdx, channel, hypplot)
 % clear all;
 % close all;
 hyp_plot = hypplot;
@@ -37,17 +37,17 @@ z_r(1:receivernum) = 0;
 % Read the file
 % And specify start time and end time of the sound you wish to localize. 
 
-t_s = ts; %Start time
-t_e = te; %End time
-t_s3 = t_s - 0.01;
-t_e3 = t_e - 0.01;
+% t_s = ts; %Start time
+% t_e = te; %End time
+% t_s3 = t_s - 0.01;
+% t_e3 = t_e - 0.01;
 Fmin = 500; %Minimum Frequency
 Fmax = 2500; %Maximum Frequency
 
-[data11,Fs] = audioread(sfile1); data1 = data11(t_s*Fs:t_e*Fs,channel);
-[data22,Fs] = audioread(sfile2);data2 = data22(t_s*Fs:t_e*Fs,channel);
-[data33,Fs] = audioread(sfile3); data3 = data33(t_s3*Fs:t_e3*Fs,channel);
-[data44,Fs] = audioread(sfile4); data4 = data44(t_s*Fs:t_e*Fs,channel);
+[data11,Fs] = audioread(sfile1); data1 = data11(startIdx:endIdx,channel);
+[data22,Fs] = audioread(sfile2);data2 = data22(startIdx:endIdx,channel);
+[data33,Fs] = audioread(sfile3); data3 = data33(startIdx - (0.01*Fs):endIdx - (0.01*Fs),channel);
+[data44,Fs] = audioread(sfile4); data4 = data44(startIdx:endIdx,channel);
 
 n = 7;
 beginFreq = Fmin/(Fs/2);

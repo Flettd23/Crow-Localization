@@ -26,7 +26,7 @@ function varargout = CrowUserInterface(varargin)
 
 % Edit the above text to modify the response to help CrowUserInterface
 
-% Last Modified by GUIDE v2.5 19-Dec-2017 20:12:00
+% Last Modified by GUIDE v2.5 05-Jan-2018 21:49:06
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -142,9 +142,12 @@ AudioFile3 = get(handles.Audio3,'String');
 AudioFile4 = get(handles.Audio4,'String');
 ssIndexes = getappdata(0,'StartStopIndex');
 fs = getappdata(0,'fs');
-start = ssIndexes(2,1) / fs;
-stop = ssIndexes(2,2) / fs;
-[realloc,prelimloc] = Crow_2D_ExperimentFunctions(AudioFile1,AudioFile2,AudioFile3,AudioFile4,start,stop,1,false);
+start = ssIndexes(2,1);
+stop = ssIndexes(2,2);
+[preloc, realloc] = Crow_2D_ExperimentFunctions(AudioFile1,AudioFile2,AudioFile3,AudioFile4,start,stop,1,false);
+axes(handles.axes6);
+plot(preloc(1),preloc(2),'g*');
+plot(realloc(1),realloc(2),'r*');
 
 
 %% ****************************************** Detection ******************************************
@@ -156,7 +159,7 @@ function PlotCall_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 idx = getappdata(0,'Index');
-if (idx + 1) <= 4
+if (idx + 1) <= 5
     idx = idx + 1;
 end
 setappdata(0,'Index',idx);
