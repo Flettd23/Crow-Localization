@@ -144,10 +144,18 @@ ssIndexes = getappdata(0,'StartStopIndex');
 fs = getappdata(0,'fs');
 start = ssIndexes(2,1);
 stop = ssIndexes(2,2);
+x_r(1) = 0; x_r(2) = 3; x_r(3) = 0.0; x_r(4) = 3;
+y_r(1) = 0; y_r(2) = 0.0; y_r(3) = 3; y_r(4) = 3;
 [preloc, realloc] = Crow_2D_ExperimentFunctions(AudioFile1,AudioFile2,AudioFile3,AudioFile4,start,stop,1,false);
 axes(handles.axes6);
-plot(preloc(1),preloc(2),'g*');
-plot(realloc(1),realloc(2),'r*');
+plot (preloc(1), preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
+hold on
+    plot(x_r(1),y_r(1),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); %plots a blue dot at the location of the four microphones
+    plot(x_r(2),y_r(2),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+    plot(x_r(3),y_r(3),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+    plot(x_r(4),y_r(4),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+hold off
+legend('Estimated Location');
 
 
 %% ****************************************** Detection ******************************************
@@ -159,6 +167,7 @@ function PlotCall_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 idx = getappdata(0,'Index');
+startStop
 if (idx + 1) <= 5
     idx = idx + 1;
 end
@@ -247,6 +256,7 @@ setappdata(0,'OutputFile',fileName);
 setappdata(0,'StartStopIndex',startStopIndicies);
 setappdata(0,'StarIndex',stars);
 setappdata(0,'Index',1);
+setappdata(0,'NumberOfCalls',length(startStopIndicies))
 setSoundTable(audioPath);
 graphEnabled = get(handles.GraphMenu,'Enable');
 if strcmp(graphEnabled,'off')
@@ -261,6 +271,7 @@ setappdata(0,'Length',length(wave));
 setappdata(0,'Channel1',wave);
 setappdata(0,'fs',fs);
 
+function GraphEnergy(handles,)
 
 % Manages all the plots for axes 3 using a switch statement
 function GraphMenu_Callback(~, ~, handles)
