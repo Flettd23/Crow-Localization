@@ -118,7 +118,7 @@ z_r(1:receivernum) = 0;
 %Resolution: the size of "blocks" inside the space. Smaller number means
 %higher resolution. 
 %Amount of calucation run will be equal to 4*res_y*res_x
-resolution = 0.1; %m
+resolution = 0.03; %m
 res_x = x_s/resolution;
 res_y = y_s/resolution;
 %res_z =                 %Fill in when we move to 3d
