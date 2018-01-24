@@ -3,7 +3,7 @@
 close all
 clear all
 
-
+%%%
 %Import File
 [FileName1,PathName] = uigetfile('C:\Kraken\Crow-Localization\*.wav','Select the first file');
 [wave,fs] = audioread(FileName1); 
@@ -30,20 +30,22 @@ F = linspace(0,fs,NFFT);
 soundData(:,2) = wave(:,2);
 soundData(:,1) = t;
 soundDatafft = fft(wave(:,2),NFFT);
+
 %Plotting both channels pre-filtering
-figure('name','Pre and Post Filterd Sound','numbertitle','off')
-subplot(4,1,1)
+% figure('name','Pre and Post Filterd Sound','numbertitle','off')
+% subplot(4,1,1)
+figure (1)
           plot(t,wave(:,2))
           title('PreFiltered Channel One');
           ylabel('Amplitude');
           xlabel('Time (in seconds)');
-          
-subplot(4,1,2)
-          plot(F(1:NFFT/2+1),abs(soundDatafft(1:NFFT/2+1,1)))
-          title('PreFiltered FFT');
-          ylabel('Spectrum');
-          xlabel('Freq (in Hz)');
-          
+%           
+% subplot(4,1,2)
+%           plot(F(1:NFFT/2+1),abs(soundDatafft(1:NFFT/2+1,1)))
+%           title('PreFiltered FFT');
+%           ylabel('Spectrum');
+%           xlabel('Freq (in Hz)');
+% %           
          
           
 %Filtering out anything below 500 hz and above 2000 hz (subject to change)
@@ -67,27 +69,47 @@ fOut = filter(b, a, wave);
 % p.play;
 
 %Storing Filtered sound file into new array 'wave2'
-wave2 = fOut;
+wave2 = fOut;          
 soundData2 = zeros(length(wave),2);
 soundData2(:,2) = wave2(:,2);
 soundData2(:,1) = 1:1:L;
 soundData2fft = fft(wave2(:,2),NFFT);
-subplot(4,1,3)
+% subplot(4,1,3)
+figure (2)
           plot(t,wave2(:,1))
           title('PostFiltered Channel One');
           ylabel('Filtered Amplitude');
           xlabel('Time (in seconds)');
-subplot(4,1,4)
-          plot(F(1:NFFT/2+1),abs(soundData2fft(1:NFFT/2+1,1)))
-          title('PostFiltered FFT');
-          ylabel('Filtered Spectrum');
-          xlabel('Freq (in Hz)');
+% subplot(4,1,4)
+%           plot(F(1:NFFT/2+1),abs(soundData2fft(1:NFFT/2+1,1)))
+%           title('PostFiltered FFT');
+%           ylabel('Filtered Spectrum');
+%           xlabel('Freq (in Hz)');
+%           
+% figure('name','Sound Wave','numbertitle','off')
+%           plot(t,wave2(:,2))
+%           title('PostFiltered Channel One');
+%           ylabel('Amplitude');
+%           xlabel('Time (in seconds)');
+          
+% figure('name','Pre-Filtered Audio','numbertitle','off')
+% subplot(4,1,1)
+%           plot(t,wave(:,2))
+%           title('PreFiltered Channel One');
+%           ylabel('Amplitude');
+%           xlabel('Time (in seconds)');
+% figure('name','Post-Filtered Audio','numbertitle','off')   
+%           plot(t,wave2(:,1))
+%           title('PostFiltered Channel One');
+%           ylabel('Filtered Amplitude');
+%           xlabel('Time (in seconds)');          
+%  
 
-          
-          
- 
 
-          
+% 
+% Nfft = 256;    win_size = 125;    ovlap = 0.90;
+% [~,FFM_1,TTM_1,PM_1] = spectrogram(wave2,hanning(win_size),round(ovlap*win_size),Nfft,fs);
+% imagesc(TTM_1,FFM_1(1:Nfft/2+1)/1000,10*log10(PM_1(1:Nfft/2+1,:))/10e-6);axis xy;colormap(jet)          
 %% *****************  Caculating and Plotting Energy  *********************
 tic;
 
@@ -103,34 +125,32 @@ energyData = zeros(L,1);
 
 
 
-% TestWave = wave2.^2;
-%Vectorize
-% VectorWave = zeros(1,length(wave));
-for i = 1:length(wave)
-    VectorWave(1,i) = wave2(i,2); 
-end
-% 
+
 Total = L-steps;
 
 
-%ParFor loop
+% %ParFor loop
+% 
+%Vectorize
+for i = 1:length(wave)
+    VectorWave(1,i) = wave2(i,2); 
+end
 
-
-% parfor i = 1:Total
-%     energyData(i) = sum(VectorWave(1,i:i+steps).^2);
-% end
+parfor i = 1:Total
+    energyData(i) = sum(VectorWave(1,i:i+steps).^2);
+end
 
 
 
 %Regular For loop
 
 
-progressbar % Create figure and set starting time 
-for i = 1:Total
-    energyData(i) = sum(wave2(i:i+steps,2).^2);
-    progressbar(i/Total)
-end
-toc;
+% progressbar % Create figure and set starting time 
+% for i = 1:Total
+%     energyData(i) = sum(wave2(i:i+steps,2).^2);
+%     progressbar(i/Total)
+% end
+% toc;
 
 %Plotting Energy vs Time
 figure('name','Energy of Filtered Wave','numbertitle','off')
@@ -146,13 +166,13 @@ plot(t(1:L),energyData);
 
 
 %Detecting Peaks and the time they appear
-minEnergy = 3;%minEnergy is the minimum energy you want a possible crow call to be detected
+minEnergy = 300;%minEnergy is the minimum energy you want a possible crow call to be detected
 numCall = 50; %Number of calls you expect to encounter
 SoundDetect = zeros(numCall,2);
 ind = 1;
 max = 0;
 
-spaceSize = 4; %m
+spaceSize = 2.73; %m
 maxTime = (sqrt(spaceSize.^2+spaceSize.^2))/340;  %units seconds
 maxIndex = floor(maxTime*fs);
 Start_Stop = zeros(numCall,2);
