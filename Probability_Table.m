@@ -118,7 +118,7 @@ z_r(1:receivernum) = 0;
 %Resolution: the size of "blocks" inside the space. Smaller number means
 %higher resolution. 
 %Amount of calucation run will be equal to 4*res_y*res_x
-resolution = 0.5; %m
+resolution = 0.1; %m
 res_x = x_s/resolution;
 res_y = y_s/resolution;
 %res_z =                 %Fill in when we move to 3d
@@ -164,6 +164,7 @@ source_loc = zeros(res_x,res_y,2); %The calulcated location of each midpoint
                                   %where source_loc(x,y,1) is the x-cord,
                                   %and source_loc(x,y,2) is the y-cord of
                                   %caluclated location
+original_loc = zeros(res_x,res_y,2);
 
 TDOA = zeros(res_x,res_y,6); %Saving the calculated TDOA's in this matrix
 progressbar % Create figure and set starting time                                   
@@ -296,10 +297,11 @@ TDOA(x,y,:) = [t_12 t_13 t_14 t_34 t_23 t_34];
 
 
 
-[~, realloc] = Localization_For_Table(c,x_s,y_s,t_12,t_13,t_14,t_34,t_24,t_23,false);
+[preloc, realloc] = Localization_For_Table(c,x_s,y_s,t_12,t_13,t_14,t_34,t_24,t_23,false);
 source_loc(x,y,1) = realloc(1,1);
 source_loc(x,y,2) = realloc(1,2);
-
+original_loc(x,y,1) = preloc(1,1);
+original_loc(x,y,2) = preloc(1,2);
 
 else 
  source_loc(x,y,:) = [1.5 1.5]
@@ -314,15 +316,31 @@ end
 %% Now onto some sick probabilty shenanigans
 
 %Distance (magnidude) from the known point to the 
-Distance_error = zeros(res_x,res_y);
+Distance_error_real = zeros(res_x,res_y);
 for y = 1:res_y
     for x = 1:res_x
-        Distance_error(x,y) = (sqrt((space(x,y,1) - source_loc(x,y,1))^2 + (space(x,y,2) - source_loc(x,y,2))^2));
+        Distance_error_real(x,y) = (sqrt((space(x,y,1) - source_loc(x,y,1))^2 + (space(x,y,2) - source_loc(x,y,2))^2));
+    end 
+end
+figure(1) 
+contourf(Distance_error_real,15);
+title ('Error of Experimental Data - Hyperbolas Removed')
+xlabel('x axis') % x-axis label
+ylabel('y axis') % y-axis label  
+pbaspect([1 1 1])
+colorbar;
+
+
+Distance_error_orig = zeros(res_x,res_y);
+for y = 1:res_y
+    for x = 1:res_x
+        Distance_error_orig(x,y) = (sqrt((space(x,y,1) - original_loc(x,y,1))^2 + (space(x,y,2) - original_loc(x,y,2))^2));
     end 
 end
 
-contourf(Distance_error,15);
-title ('Error of Experimental Data')
+figure(2)
+contourf(Distance_error_orig,15);
+title ('Error of Experimental Data - Original')
 xlabel('x axis') % x-axis label
 ylabel('y axis') % y-axis label  
 pbaspect([1 1 1])
