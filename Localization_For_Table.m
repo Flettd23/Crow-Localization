@@ -64,7 +64,7 @@ t_max_23 = t_23;
 
 %number of points on the hyperbola, more points results in a more precise
 %calculation, but will take more time to calculate.
-point_num = 1000;
+point_num = 500;
 
 
 %Hyperbola between mics 1 and 2, plotted in BLACK
@@ -161,54 +161,6 @@ x_mid_24 = (x_r(2) + x_r(4))/2;
 y_mid_24 = (y_r(2) + y_r(4))/2;
 [h_24(1,:), h_24(2,:)] = hyperbola_points(a_24, b_24, x_mid_24, y_mid_24, x_r(1)-5, x_r(4)+5, y_r(1)-5, y_r(4)+5, point_num, 2);
 
-
-
-% %% plotting the hyperbolas
-% if hyp_plot == true %hyp_plot == TRUE -> plot hyperbolas, hyp_plot == FALSE -> no plotting
-%     figure (7); %creates a new window
-%     xlim([x_r(1)-.01 x_r(2)+0.01]); %restricts the plot window 
-%     ylim([y_r(1)-0.01 x_r(2)+.01]); %restricts the plot window
-% 
-%     hold on; %stops changes being made to the configuration of the plots
-% %     plot(x_s,y_s,'dk','MarkerFaceColor','y','markersize',14,'LineWidth',1); %plots a Green diamond at the simulated source location
-%     plot(x_r(1),y_r(1),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); %plots a blue dot at the location of the four microphones
-%     plot(x_r(2),y_r(2),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); 
-%     plot(x_r(3),y_r(3),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
-%     plot(x_r(4),y_r(4),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
-%  
-% 
-%     %Plots the hyperbola between mics 1 and 2: Black
-% 
-%     plot(h_12(1,:),h_12(2,:),'k'); 
-% 
-%     
-%     %Plots the hyperbola between mics 1 and 3: Red
-% 
-%     plot(h_13(1,:),h_13(2,:),'r'); 
-% 
-%     %Plots the hyperbola between mics 1 and 4: Magenta
-% 
-%     plot(h_14(1,:), h_14(2,:), 'm');
-%   
-% 
-%     %Plots the hyperbola between mics 3 and 4: Blue
-% 
-%     plot(h_34(1,:),h_34(2,:),'b');
-% 
-%     
-%     %Plots the hyperbola between mics 2 and 4: Cyan
-% 
-%     plot(h_24(1,:), h_24(2,:), 'c');
-% 
-%  
-%     %Plots the hyperbola between mics 2 and 3: Green
-%     plot(h_23(1,:), h_23(2,:), 'g');
-%   
-%     legend('Receiver 1','Receiver 2','Receiver 3','Receiver 4','hyperbola 12','hyperbola 13','hyperbola 14','hyperbola 34', 'hyperbola 24', 'hyperbola 23');
-% else
-% end
-    
-%     
 % %%%%%%%%%%%%%%%%%%    CALCULATION OF INTERSECTIONS  %% %%%%%%%%%%%%%%%
 % This section calculates all the intersections of the 6 hyperbolae in the
 % relevant region based on the time difference."Intersections" between
@@ -270,6 +222,8 @@ Space_y = y_r(4);
     
     qmin2434 = hypsect(h_24, h_34, t_max_24, t_max_34, Space_x, Space_y);
 %     plot (qmin2434(1), qmin2434(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+
+IntersectionList = [0 0 0 0 0 0 0 0 0 0 0 0 0];
     
     %------------------CALCULATION OF PRELIMINARY LOCATION----------------------%
     %   The preliminary calculation is calculated by taking the mean
@@ -280,7 +234,7 @@ Space_y = y_r(4);
     
     preymatrix = [qmin1213(2),qmin1214(2),qmin1223(2),qmin1224(2),qmin1314(2),qmin1323(2),qmin1334(2),qmin1423(2),qmin1424(2),qmin1434(2),qmin2324(2),qmin2334(2),qmin2434(2)];
     
-    preloc = [mean(meanmaker(prexmatrix)),mean(meanmaker(preymatrix))];
+    preloc = [mean(meanmaker(prexmatrix)) + std((meanmaker(prexmatrix)),1),mean(meanmaker(preymatrix)) + std((meanmaker(preymatrix)),1)];
 %     plot (preloc(1), preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
     
     
@@ -304,38 +258,48 @@ Space_y = y_r(4);
 %Section 1 
 if (preloc(1) < Space_x/3) && (preloc(2) < Space_y/3)
     Space = 1;
+    IntersectionList = [1 1 1 0 1 1 0 1 0 0 0 0 0];
 end
 %Section 2
 if (preloc(1) > Space_x/3) && (preloc(1) < 2*Space_x/3) && (preloc(2) < Space_y/3)
     Space = 2;
+    IntersectionList = [0 1 1 0 0 0 0 1 0 1 0 1 0];
 end
 %Section 3
 if (preloc(1) > 2*Space_x/3) && (preloc(2) < Space_y/3)
     Space = 3;
+    IntersectionList = [0 1 1 1 0 0 0 1 1 0 1 0 0];
 end
 %Section 4 
 if (preloc(1) < Space_x/3) && (preloc(2) > Space_y/3) && (preloc(2) < 2*Space_y/3)
     Space = 4;
+    IntersectionList = [0 0 0 0 1 1 0 1 1 0 1 0 0];
+    
 end
 %Section 5
 if (preloc(1) > Space_x/3) && (preloc(1) < 2*Space_x/3) && (preloc(2) > Space_y/3) && (preloc(2) < 2*Space_y/3)
     Space = 5;
+    IntersectionList = [1 1 1 1 1 1 1 1 1 1 1 1 1];
 end
 %Section 6
 if (2*Space_x/3 < preloc(1)) && (preloc(2) > Space_y/3) && (preloc(2) < 2*Space_y/3)
     Space = 6;
+    IntersectionList = [0 0 0 0 1 1 0 1 1 0 1 0 0];
 end
 %Section 7 
 if (preloc(1) < Space_x/3) && ( preloc(2) > 2*Space_y/3) 
     Space = 7;
+    IntersectionList = [0 0 0 0 1 1 1 1 0 1 0 1 0];
 end
 %Section 8
 if (preloc(1) > Space_x/3) && (preloc(1) < 2*Space_x/3) && (preloc(2) > 2*Space_y/3) 
     Space = 8;
+    IntersectionList = [0 1 1 0 0 0 0 1 0 1 0 1 0];
 end
 %Section 9
 if (2*Space_x/3 < preloc(1)) && (preloc(2) > 2*Space_y/3) 
     Space = 9;
+    IntersectionList = [0 0 0 0 0 0 0 1 1 1 1 1 1];
 end
 
 %%-----------CALCULATING REAL LOCATION-----------%%
@@ -344,57 +308,68 @@ end
 %   grid (through error analysis). It is then plotted as a blue diamond. 
 
 realloc = [0,0];
+intMat = [0;0];
+
 
 if (Space == 1)
     rexmatrix = [qmin1213(1),qmin1214(1),qmin1223(1),qmin1314(1),qmin1323(1),qmin1423(1)];
     reymatrix = [qmin1213(2),qmin1214(2),qmin1223(2),qmin1314(2),qmin1323(2),qmin1423(2)];
-    realloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 2)
     rexmatrix = [qmin1214(1),qmin1223(1),qmin1423(1),qmin1434(1),qmin2334(1)];
     reymatrix = [qmin1214(2),qmin1223(2),qmin1423(2),qmin1434(2),qmin2334(2)];
-    realloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 3)
     rexmatrix = [qmin1214(1),qmin1223(1),qmin1224(1),qmin1423(1),qmin1424(1),qmin2324(1)];
     reymatrix = [qmin1214(2),qmin1223(2),qmin1224(2),qmin1423(2),qmin1424(2),qmin2324(2)];
-    realloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 4)
     rexmatrix = [qmin1314(1),qmin1323(1),qmin1423(1),qmin1424(1),qmin2324(1)];
     reymatrix = [qmin1314(2),qmin1323(2),qmin1423(2),qmin1424(2),qmin2324(2)];
-    realloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 5)
     realloc = preloc;
+    intMat = [prexmatrix; preymatrix];
 end
 
 if (Space == 6)
     rexmatrix = [qmin1314(1),qmin1323(1),qmin1423(1),qmin1424(1),qmin2324(1)];
     reymatrix = [qmin1314(2),qmin1323(2),qmin1423(2),qmin1424(2),qmin2324(2)];
-    realloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 7)
     rexmatrix = [qmin1314(1),qmin1323(1),qmin1334(1),qmin1423(1),qmin1434(1),qmin2334(1)];
     reymatrix = [qmin1314(2),qmin1323(2),qmin1334(2),qmin1423(2),qmin1434(2),qmin2334(2)];
-    realloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 8)
     rexmatrix = [qmin1214(1),qmin1223(1),qmin1423(1),qmin1434(1),qmin2334(1)];
     reymatrix = [qmin1214(2),qmin1223(2),qmin1423(2),qmin1434(2),qmin2334(2)];
-    realloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 9)
     rexmatrix = [qmin1423(1),qmin1424(1),qmin1434(1),qmin2324(1),qmin2334(1),qmin2434(1)];
     reymatrix = [qmin1423(2),qmin1424(2),qmin1434(2),qmin2324(2),qmin2334(2),qmin2434(2)];
-    realloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    intMat = [rexmatrix; reymatrix];
 end
 
 
@@ -450,32 +425,71 @@ if hyp_plot == true %hyp_plot == TRUE -> plot hyperbolas, hyp_plot == FALSE -> n
     leg7 = plot(h_23(1,:), h_23(2,:), 'g');
     
     %interesections (red diamonds)%
+    if IntersectionList(1) == 1
 plot (qmin1213(1), qmin1213(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '1213 got plotted'
+    end
+    if IntersectionList(2) == 1
 plot (qmin1214(1), qmin1214(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '1214 got plotted'
+    end
+    if IntersectionList(3) == 1
 plot (qmin1223(1), qmin1223(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '1223 got plotted'
+    end
+    if IntersectionList(4) == 1
 plot (qmin1224(1), qmin1224(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '1224 got plotted'
+    end
+    if IntersectionList(5) == 1
 plot (qmin1314(1), qmin1314(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '1314 got plotted'
+    end
+    if IntersectionList(6) == 1
 plot (qmin1323(1), qmin1323(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '1323 got plotted'
+    end
+    if IntersectionList(7) == 1
 plot (qmin1334(1), qmin1334(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '1334 got plotted'
+    end
+    if IntersectionList(8) == 1
 plot (qmin1423(1), qmin1423(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '1423 got plotted'
+    end
+    if IntersectionList(9) == 1
 plot (qmin1424(1), qmin1424(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '1424 got plotted'
+    end
+    if IntersectionList(10) == 1
 plot (qmin1434(1), qmin1434(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '1434 got plotted'
+    end
+    if IntersectionList(11) == 1
 plot (qmin2324(1), qmin2324(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '2324 got plotted'
+    end
+    if IntersectionList(12) == 1
 plot (qmin2334(1), qmin2334(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '2334 got plotted'
+    end
+    if IntersectionList(13) == 1
 plot (qmin2434(1), qmin2434(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+% callout = '2434 got plotted'
+    end
 
-leg8 = plot (qmin1213(1), qmin1213(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+leg8 = plot (qmin1423(1), qmin1423(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
 
 %final locations: preliminary (magenta diamond) and final "real" location
 %(cyan diamond)%
-plot (preloc(1), preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
-leg9 = plot (preloc(1), preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
+%plot (preloc(1), preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
+% leg9 = plot (preloc(1), preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
 plot (realloc(1), realloc(2),'dk','MarkerFaceColor','c','markersize',11,'LineWidth',1);
 leg10 = plot (realloc(1), realloc(2),'dk','MarkerFaceColor','c','markersize',11,'LineWidth',1);
 
-legend([leg1, leg2, leg3, leg4, leg5, leg6, leg7, leg8, leg9, leg10],{'Reciever Location', 'Hyperbola 12',...
+legend([leg1, leg2, leg3, leg4, leg5, leg6, leg7, leg8, leg10],{'Reciever Location', 'Hyperbola 12',...
     'Hyperbola 13','Hyperbola 14','Hyperbola 34', 'Hyperbola 24', 'Hyperbola 23', 'Intersections',...
-    'Estimated Location', 'Real Location'});
+     'Estimated Location'});
   
 %     legend('Receiver 1','Receiver 2','Receiver 3','Receiver 4','hyperbola 12',...
 %         'hyperbola 13','hyperbola 14','hyperbola 34', 'hyperbola 24', 'hyperbola 23',...

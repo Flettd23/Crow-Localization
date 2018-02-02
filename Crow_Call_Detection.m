@@ -114,7 +114,7 @@ figure (2)
 tic;
 
 %%Sum of energy Graph
-timeStep = 0.2; 
+timeStep = 0.1; 
 steps = timeStep/(1/fs);
 
 %Constants to find peaks in data 
@@ -129,27 +129,11 @@ energyData = zeros(L,1);
 Total = L-steps;
 
 
-% %ParFor loop
-% 
-%Vectorize
-for i = 1:length(wave)
-    VectorWave(1,i) = wave2(i,2); 
-end
-
-parfor i = 1:Total
-    energyData(i) = sum(VectorWave(1,i:i+steps).^2);
-end
-
-
-
-%Regular For loop
-
-
 % progressbar % Create figure and set starting time 
-% for i = 1:Total
-%     energyData(i) = sum(wave2(i:i+steps,2).^2);
+for i = 1:Total
+    energyData(i) = sum(wave2(i:i+steps,2).^2);
 %     progressbar(i/Total)
-% end
+end
 % toc;
 
 %Plotting Energy vs Time
@@ -166,16 +150,19 @@ plot(t(1:L),energyData);
 
 
 %Detecting Peaks and the time they appear
-minEnergy = 300;%minEnergy is the minimum energy you want a possible crow call to be detected
-numCall = 50; %Number of calls you expect to encounter
-SoundDetect = zeros(numCall,2);
+minEnergy = 100;%minEnergy is the minimum energy you want a possible crow call to be detected
+numCall = 70; %Number of calls you expect to encounter
+SoundDetect = zeros(numCall,3);
 ind = 1;
 max = 0;
 
-spaceSize = 2.73; %m
+spaceSize = 3.00; %m
 maxTime = (sqrt(spaceSize.^2+spaceSize.^2))/340;  %units seconds
 maxIndex = floor(maxTime*fs);
 Start_Stop = zeros(numCall,2);
+% TH is the discussed "Thershold", or number of sames that the energy in
+% increasing, although this IS NOT a CONSECUTIVE incease
+TH = 0;
 
 
 
@@ -183,53 +170,89 @@ for i = 1:L
     if energyData(i) > minEnergy
         if energyData(i+1)> minEnergy %Causes problems if call is close to the min energy level 
             if energyData(i) > max 
-                max = energyData(i);
-                SoundDetect(ind,2) = energyData(i); %Energy of the sound
-                SoundDetect(ind,1) = i*(1/fs); %sample at which the sound occured
-                
-                 %Assuming we detect a call of interest, to avoid the possiblilty of
-                 %cutting out the call from other other mics as we import the audio files
-                 %into Crow_2D_Localization, we can use the max distance from the mics
-                 %devided by the speed of sound to calculate the maximum time difference
-                 %between the sounds arrival to each mic
+                if max == 0
+                    TH = 0;
+                else
+                    TH = TH+1;
+                end
+                    max = energyData(i);
+                    SoundDetect(ind,3) = TH;
+                    SoundDetect(ind,2) = energyData(i); %Energy of the sound
+                    SoundDetect(ind,1) = i*(1/fs); %sample at which the sound occured
+
+                     %Assuming we detect a call of interest, to avoid the possiblilty of
+                     %cutting out the call from other other mics as we import the audio files
+                     %into Crow_2D_Localization, we can use the max distance from the mics
+                     %devided by the speed of sound to calculate the maximum time difference
+                     %between the sounds arrival to each mic
 
 
-                 Start_Stop(ind,1) = (i-maxIndex);
-                 Start_Stop(ind,2) = (i+0.3*fs+maxIndex);
+                     Start_Stop(ind,1) = (i-maxIndex);
+                     Start_Stop(ind,2) = (i+0.3*fs+maxIndex);
                 
             end
         else   
        ind = ind + 1;
         max = 0;
+        
         end
     end
  
 end
 
+% numCall2 = 300;
+% threshDetect = zeros(numCall2,3);
+% threshold = 1600;
+% conseq = 0;
+% ind2 = 0;
+% for i = 2:L-1
+%     if energyData(i) > energyData(i-1) && energyData(i) < energyData(i+1) 
+%         conseq = conseq + 1;
+%     else 
+%         if conseq > threshold
+%            ind2 = ind2 + 1;
+%            threshDetect(ind2,1) = energyData(i);
+%            threshDetect(ind2,2) = i*(1/fs);
+%            threshDetect(ind2,3) = conseq;
+%            conseq = 0;
+% 
+% 
+%         end  
+%     end
+% end
+
+%Theshhold Calulating 
+
+
 
  for i = 1:length(SoundDetect)
      if ((SoundDetect(i,1) ~= 0) && (SoundDetect(i,2) ~= 0))
           plot(SoundDetect(i,1),SoundDetect(i,2),'r*')
+%           plot(threshDetect(i,2),threshDetect(i,1),'b*')
      end
  end
+
+
  hold off
  
- %Printing Relevant Segments of the entire sound file to a new text file to
- %be later used by the User Interface in selecting which parts are to be
- %anaylized by Crow Localization
- for i = 1:length(Start_Stop)
-     if ((Start_Stop(i,1) ~= 0) && (Start_Stop(i,2) ~= 0)) 
-              fprintf(fid,'%g\t',Start_Stop(i,:));
-              fprintf(fid,'\n'); 
-     end
- end
-     fprintf(fid,'\n');
- fclose(fid);
- 
-% end
-
-     
-     
+% %  Printing Relevant Segments of the entire sound file to a new text file to
+% %  be later used by the User Interface in selecting which parts are to be
+% %  anaylized by Crow Localization
+% %  for i = 1:length(Start_Stop)
+% %      if ((Start_Stop(i,1) ~= 0) && (Start_Stop(i,2) ~= 0)) 
+% %               fprintf(fid,'%g\t',Start_Stop(i,:));
+% %               fprintf(fid,'\n'); 
+% %      end
+% %  end
+% %  
+% %  
+% %      fprintf(fid,'\n');
+% %  fclose(fid);
+% %  
+% % % end
+% % 
+% %      
+% %      
 
 
  

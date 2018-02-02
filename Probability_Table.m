@@ -118,7 +118,7 @@ z_r(1:receivernum) = 0;
 %Resolution: the size of "blocks" inside the space. Smaller number means
 %higher resolution. 
 %Amount of calucation run will be equal to 4*res_y*res_x
-resolution = 0.03; %m
+resolution = 0.05; %m
 res_x = x_s/resolution;
 res_y = y_s/resolution;
 %res_z =                 %Fill in when we move to 3d
@@ -147,7 +147,7 @@ end
 
 
 L = 1024; % length of signal in time
-Fs = 24000; % Hz
+Fs = 48000; % Hz
 c = 343; % speed of sound (m/s)
 NFFT = 2^nextpow2(L); % Length of the FFT
 t = (0:L-1)/Fs;    % Time vector (s)
@@ -172,7 +172,6 @@ progressbar % Create figure and set starting time
 for y=1:res_y
     for x=1:res_x
 
-if (x < 1.45 || x > 1.55) && (y < 1.45|| y > 1.55) 
 
 % Create the crow signal. If the function was called without values for
 % x_s, y_s or z_s, default values will be assigned.
@@ -303,9 +302,7 @@ source_loc(x,y,2) = realloc(1,2);
 original_loc(x,y,1) = preloc(1,1);
 original_loc(x,y,2) = preloc(1,2);
 
-else 
- source_loc(x,y,:) = [1.5 1.5]
-end
+
 
 
 progressbar(y/res_y) % Update figure 
@@ -322,13 +319,6 @@ for y = 1:res_y
         Distance_error_real(x,y) = (sqrt((space(x,y,1) - source_loc(x,y,1))^2 + (space(x,y,2) - source_loc(x,y,2))^2));
     end 
 end
-figure(1) 
-contourf(Distance_error_real,15);
-title ('Error of Experimental Data - Hyperbolas Removed')
-xlabel('x axis') % x-axis label
-ylabel('y axis') % y-axis label  
-pbaspect([1 1 1])
-colorbar;
 
 
 Distance_error_orig = zeros(res_x,res_y);
@@ -338,14 +328,36 @@ for y = 1:res_y
     end 
 end
 
+
+
+figure(1) 
+contourf(Distance_error_real,50);
+title ('Error of Experimental Data - Hyperbolas Removed')
+xlabel('x axis') % x-axis label
+ylabel('y axis') % y-axis label  
+pbaspect([1 1 1])
+colorbar;
+
+
 figure(2)
-contourf(Distance_error_orig,15);
+contourf(Distance_error_orig,50);
 title ('Error of Experimental Data - Original')
 xlabel('x axis') % x-axis label
 ylabel('y axis') % y-axis label  
 pbaspect([1 1 1])
 colorbar;
 
+figure(3)
+histogram(Distance_error_real)
+title ('Histogram of Error of Experimental Data - Hyperbolas Removed')
+xlabel('Error in m') % x-axis label
+ylabel('Occurances') % y-axis label 
+
+figure(4)
+histogram(Distance_error_orig)
+title ('Histogram of Error of Experimental Data - orig')
+xlabel('Error in m') % x-axis label
+ylabel('Occurances') % y-axis label 
 % 
 % save('TDOA_Array.mat','TDOA')
 % save('Distance_Error.mat','Distance_error')
