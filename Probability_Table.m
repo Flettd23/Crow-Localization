@@ -1,5 +1,6 @@
 %%                     Probability Array 
 clear all;
+close all;
 clc;
 
 %% Not working, Dont know why
@@ -167,7 +168,10 @@ source_loc = zeros(res_x,res_y,2); %The calulcated location of each midpoint
 original_loc = zeros(res_x,res_y,2);
 
 TDOA = zeros(res_x,res_y,6); %Saving the calculated TDOA's in this matrix
-progressbar % Create figure and set starting time                                   
+progressbar % Create figure and set starting time         
+
+hyp_intersect_orig = zeros(res_x,res_y,13,2); 
+hyp_intersect_revised = zeros(res_x,res_y,13,2); 
                                   
 for y=1:res_y
     for x=1:res_x
@@ -296,12 +300,15 @@ TDOA(x,y,:) = [t_12 t_13 t_14 t_34 t_23 t_34];
 
 
 
-[preloc, realloc] = Localization_For_Table(c,x_s,y_s,t_12,t_13,t_14,t_34,t_24,t_23,false);
+[preloc, realloc, qmin, IntersectionList] = Localization_For_Table(c,x_s,y_s,t_12,t_13,t_14,t_34,t_24,t_23,false);
 source_loc(x,y,1) = realloc(1,1);
 source_loc(x,y,2) = realloc(1,2);
 original_loc(x,y,1) = preloc(1,1);
 original_loc(x,y,2) = preloc(1,2);
+hyp_intersect_orig(x,y,:,:) = qmin; 
 
+hyp_intersect_revised(x,y,:,1) = qmin(1,1) * IntersectionList;
+hyp_intersect_revised(x,y,:,2) = qmin(1,2) * IntersectionList;
 
 
 
@@ -311,6 +318,9 @@ progressbar(y/res_y) % Update figure
 end
 
 %% Now onto some sick probabilty shenanigans
+
+
+
 
 %Distance (magnidude) from the known point to the 
 Distance_error_real = zeros(res_x,res_y);
@@ -331,7 +341,7 @@ end
 
 
 figure(1) 
-contourf(Distance_error_real,50);
+contourf(Distance_error_real,15);
 title ('Error of Experimental Data - Hyperbolas Removed')
 xlabel('x axis') % x-axis label
 ylabel('y axis') % y-axis label  
@@ -340,7 +350,7 @@ colorbar;
 
 
 figure(2)
-contourf(Distance_error_orig,50);
+contourf(Distance_error_orig,15);
 title ('Error of Experimental Data - Original')
 xlabel('x axis') % x-axis label
 ylabel('y axis') % y-axis label  
@@ -359,6 +369,8 @@ title ('Histogram of Error of Experimental Data - orig')
 xlabel('Error in m') % x-axis label
 ylabel('Occurances') % y-axis label 
 % 
-% save('TDOA_Array.mat','TDOA')
+save('hyp_intersect_orig.mat','hyp_intersect_orig')
+save('hyp_intersect_revised.mat','hyp_intersect_revised')
+
 % save('Distance_Error.mat','Distance_error')
 

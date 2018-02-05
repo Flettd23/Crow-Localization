@@ -120,7 +120,7 @@ steps = timeStep/(1/fs);
 %Constants to find peaks in data 
 %minEnergy is the minimum energy you want a possible crow call to be detected
 numCalls = 10; %Number of calls you expect to hear 
-SoundDetect = zeros(numCalls,1); 
+SoundDetect = zeros(numCalls,4); 
 energyData = zeros(L,1);
 
 
@@ -136,102 +136,72 @@ for i = 1:Total
 end
 % toc;
 
-%Plotting Energy vs Time
-figure('name','Energy of Filtered Wave','numbertitle','off')
-plot(t(1:L),energyData);
-          xlabel('Time');
-          ylabel('Energy');
-          title('Energy vs Time');
- hold on
 
-          
 
 %% ***************** Detecting and Saving Possible Calls*******************
 
 
 %Detecting Peaks and the time they appear
-minEnergy = 100;%minEnergy is the minimum energy you want a possible crow call to be detected
+minEnergy = 15;%minEnergy is the minimum energy you want a possible crow call to be detected
 numCall = 70; %Number of calls you expect to encounter
 SoundDetect = zeros(numCall,3);
 ind = 1;
-max = 0;
+
 
 spaceSize = 3.00; %m
 maxTime = (sqrt(spaceSize.^2+spaceSize.^2))/340;  %units seconds
 maxIndex = floor(maxTime*fs);
 Start_Stop = zeros(numCall,2);
 % TH is the discussed "Thershold", or number of sames that the energy in
-% increasing, although this IS NOT a CONSECUTIVE incease
-TH = 0;
+% increasing,
+TH = fs*0.1;
 
 
-
+conseq = 0;
+ind3 = 1;
 for i = 1:L
     if energyData(i) > minEnergy
-        if energyData(i+1)> minEnergy %Causes problems if call is close to the min energy level 
-            if energyData(i) > max 
-                if max == 0
-                    TH = 0;
-                else
-                    TH = TH+1;
-                end
-                    max = energyData(i);
-                    SoundDetect(ind,3) = TH;
-                    SoundDetect(ind,2) = energyData(i); %Energy of the sound
-                    SoundDetect(ind,1) = i*(1/fs); %sample at which the sound occured
-
-                     %Assuming we detect a call of interest, to avoid the possiblilty of
-                     %cutting out the call from other other mics as we import the audio files
-                     %into Crow_2D_Localization, we can use the max distance from the mics
-                     %devided by the speed of sound to calculate the maximum time difference
-                     %between the sounds arrival to each mic
-
-
-                     Start_Stop(ind,1) = (i-maxIndex);
-                     Start_Stop(ind,2) = (i+0.3*fs+maxIndex);
-                
-            end
-        else   
-       ind = ind + 1;
-        max = 0;
-        
-        end
+        conseq = conseq +1;
+            if conseq == 1 %Start of a possible call, having just passed the noise threshhold
+                 Start_Stop(ind3,1) = i; %sample at which the sound occured
+            end   
+    else 
+        if conseq > TH 
+             Start_Stop(ind3,2) = i;
+             [maxx,indx] = max(energyData(Start_Stop(ind3,1):Start_Stop(ind3,2)));
+            SoundDetect(ind3,2) = maxx; %Energy of the sound
+            SoundDetect(ind3,1) = indx+i-conseq-2;
+            ind3 = ind3 + 1;
+            conseq = 0;
+        else 
+            conseq = 0;
+        end         
     end
- 
 end
 
-% numCall2 = 300;
-% threshDetect = zeros(numCall2,3);
-% threshold = 1600;
-% conseq = 0;
-% ind2 = 0;
-% for i = 2:L-1
-%     if energyData(i) > energyData(i-1) && energyData(i) < energyData(i+1) 
-%         conseq = conseq + 1;
-%     else 
-%         if conseq > threshold
-%            ind2 = ind2 + 1;
-%            threshDetect(ind2,1) = energyData(i);
-%            threshDetect(ind2,2) = i*(1/fs);
-%            threshDetect(ind2,3) = conseq;
-%            conseq = 0;
-% 
-% 
-%         end  
-%     end
-% end
+
+
 
 %Theshhold Calulating 
 
 
+%Plotting Energy vs Time
+figure('name','Energy of Filtered Wave','numbertitle','off')
+plot(1:L,energyData,'k');
+          xlabel('Time');
+          ylabel('Energy');
+          title('Energy vs Time');
+ hold on
 
+          
  for i = 1:length(SoundDetect)
      if ((SoundDetect(i,1) ~= 0) && (SoundDetect(i,2) ~= 0))
-          plot(SoundDetect(i,1),SoundDetect(i,2),'r*')
-%           plot(threshDetect(i,2),threshDetect(i,1),'b*')
+          plot(SoundDetect(i,1),SoundDetect(i,2),'b*')
+          plot(Start_Stop(i,1):SoundDetect(i,1),energyData(Start_Stop(i,1):SoundDetect(i,1)),'b')
      end
  end
 
+line([1 L],[minEnergy minEnergy],'LineWidth',1)
 
  hold off
  

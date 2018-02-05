@@ -1,4 +1,4 @@
-function [preloc, realloc] = Localization_For_Table(c_sound,x_s,y_s,t_12,t_13,t_14,t_34,t_24,t_23,hypplot);
+function [preloc, realloc, qmin, IntersectionList] = Localization_For_Table(c_sound,x_s,y_s,t_12,t_13,t_14,t_34,t_24,t_23,hypplot);
 % clear all;
 % close all;
 hyp_plot = hypplot;
@@ -65,10 +65,13 @@ t_max_23 = t_23;
 %number of points on the hyperbola, more points results in a more precise
 %calculation, but will take more time to calculate.
 point_num = 500;
-
+Space_x = x_r(4);
+Space_y = y_r(4);
 
 %Hyperbola between mics 1 and 2, plotted in BLACK
-    
+if t_max_12 == 0
+    [h_12(1,:), h_12(2,:)] = Line_Maker(Space_x/2, 0, Space_x/2, Space_y, point_num);
+else
 a_12 = abs(t_max_12)*c/2; %a value for the hypoerbola
 c_12 =  sqrt((x_r(1)-x_r(2))^2+(y_r(1)-y_r(2))^2+(z_r(1)-z_r(2))^2); %c value for the hyperbola
 b_12 = sqrt(c_12^2-a_12^2); %b value for the hyperbola
@@ -79,23 +82,27 @@ y_mid_12 = (y_r(1)+y_r(2))/2; %calculates the y-value at the midpoint between th
 %first row is the x values and the second row is the y values. See the
 %hyperbola_points function for more detail
 [h_12(1,:), h_12(2,:)] = hyperbola_points(a_12, b_12, x_mid_12, y_mid_12, x_r(1)-5, x_r(4)+5, y_r(1)-5, y_r(4)+5, point_num, 1);
-
+end
 
 %Hyperbola between mics 1 and 3, plotted in RED
-
+if t_max_13 == 0
+    [h_13(1,:), h_13(2,:)] = Line_Maker(0, Space_y/2, Space_x, Space_y/2, point_num);
+else
 a_13 = abs(t_max_13)*c/2;
 c_13 =  sqrt((x_r(1)-x_r(3))^2+(y_r(1)-y_r(3))^2+(z_r(1)-z_r(3))^2); 
 b_13 = sqrt(c_13^2-a_13^2);
 x_mid_13 = (x_r(1)+x_r(3))/2; 
 y_mid_13 = (y_r(1)+y_r(3))/2;
 [h_13(1,:), h_13(2,:)] = hyperbola_points(a_13, b_13, x_mid_13, y_mid_13, x_r(1)-5, x_r(4)+5, y_r(1)-5, y_r(4)+5, point_num, 2);
-
+end
 
 
 %Hyperbola between mics 1 and 4, plotted in PURPLE
 %(BW) I'm attempting to plot the hyperbola as if point 4 was on the x axis,
 %preserving distance between the points
-
+if t_max_14 == 0
+    [h_14(1,:), h_14(2,:)] = Line_Maker(0, Space_y, Space_x, 0, point_num);
+else
 x_4_rotated = x_r(1) + sqrt((x_r(4) - x_r(1))^2 + (y_r(4) - y_r(1))^2); %preserving the distance between points 1 and 4
 y_4_rotated = y_r(1); %rotating point 4 down to be in line horizontally with recorder 1
 a_14 = abs(t_max_14)*c/2; 
@@ -104,7 +111,6 @@ b_14 = sqrt(c_14^2-a_14^2);
 x_mid_14 = (x_r(1) + x_4_rotated)/2;
 y_mid_14 = (y_r(1) + y_4_rotated)/2;
 [h_14(1,:), h_14(2,:)] = hyperbola_points(a_14, b_14, x_mid_14, y_mid_14, x_r(1)-5, x_r(4)+5, y_r(1)-5, y_r(4)+5, point_num, 1);
-
 %Because the h_14 hyperbolas was initially calculated as if recorder 4 was
 %inline horizontally with recorder 1, the hyperbola needs to be rotated up
 %by theta_14 radians. This is calculated by taking the arctan of the ratio
@@ -118,19 +124,26 @@ rotation = [cos(theta_14) -sin(theta_14);
              sin(theta_14) cos(theta_14)];
 h_14 = rotation * h_14;
 
+end
+
 
 % 
 % %Hyperbola between mics 3 and 4, plotted in BLUE
-
+if t_max_34 == 0
+    [h_34(1,:), h_34(2,:)] = Line_Maker(Space_x/2, Space_y, Space_x/2, 0, point_num);
+else
 a_34 = abs(t_max_34)*c/2;
 c_34 =  sqrt((x_r(3)-x_r(4))^2+(y_r(3)-y_r(4))^2+(z_r(3)-z_r(4))^2); 
 b_34 = sqrt(c_34^2-a_34^2);
 x_mid_34 = (x_r(3)+x_r(4))/2;
 y_mid_34 = (y_r(3)+y_r(4))/2;
 [h_34(1,:), h_34(2,:)] = hyperbola_points(a_34, b_34, x_mid_34, y_mid_34, x_r(1)-5, x_r(4)+5, y_r(1)-5, y_r(4)+5, point_num, 1);
-
+end
 
 %Hyperbola between mics 2 and 3, plotted in Green
+if t_max_23 == 0
+    [h_23(1,:), h_23(2,:)] = Line_Maker(0, 0, Space_x, Space_y, point_num);
+else
 x_3_rotated = x_r(2) - sqrt((x_r(2) - x_r(3))^2 + (y_r(2) - y_r(3))^2);
 y_3_rotated = y_r(2);
 a_23 = abs(t_max_23)*c/2;
@@ -150,17 +163,72 @@ rotation = [cos(theta_23) -sin(theta_23);
              sin(theta_23) cos(theta_23)];
 h_23 = rotation * h_23;
 h_23(1,:) = h_23(1,:) + x_r(2);
-
+end
 
 % %Hyperbola between mics 2 and 4, plotted in Cyan
-
+if t_max_24 == 0
+    [h_24(1,:), h_24(2,:)] = Line_Maker(Space_x, Space_y/2, 0, Space_y/2, point_num);
+else
 a_24 = abs(t_max_24)*c/2;
 c_24 = sqrt((x_r(2) - x_r(4))^2 + (y_r(2) - y_r(4))^2 + (z_r(2) - z_r(4))^2);
 b_24 = sqrt(c_24^2 - a_24^2);
 x_mid_24 = (x_r(2) + x_r(4))/2;
 y_mid_24 = (y_r(2) + y_r(4))/2;
 [h_24(1,:), h_24(2,:)] = hyperbola_points(a_24, b_24, x_mid_24, y_mid_24, x_r(1)-5, x_r(4)+5, y_r(1)-5, y_r(4)+5, point_num, 2);
+end
+hypMat = [h_12(1,:); h_12(2,:); h_13(1,:); h_13(2,:); h_14(1,:); h_14(2,:);...
+     h_34(1,:); h_34(2,:); h_23(1,:); h_23(2,:); h_24(1,:); h_24(2,:)];
 
+
+
+
+
+% %% plotting the hyperbolas
+% if hyp_plot == true %hyp_plot == TRUE -> plot hyperbolas, hyp_plot == FALSE -> no plotting
+%     figure (7); %creates a new window
+%     xlim([x_r(1)-.01 x_r(2)+0.01]); %restricts the plot window 
+%     ylim([y_r(1)-0.01 x_r(2)+.01]); %restricts the plot window
+% 
+%     hold on; %stops changes being made to the configuration of the plots
+% %     plot(x_s,y_s,'dk','MarkerFaceColor','y','markersize',14,'LineWidth',1); %plots a Green diamond at the simulated source location
+%     plot(x_r(1),y_r(1),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); %plots a blue dot at the location of the four microphones
+%     plot(x_r(2),y_r(2),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); 
+%     plot(x_r(3),y_r(3),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+%     plot(x_r(4),y_r(4),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+%  
+% 
+%     %Plots the hyperbola between mics 1 and 2: Black
+% 
+%     plot(h_12(1,:),h_12(2,:),'k'); 
+% 
+%     
+%     %Plots the hyperbola between mics 1 and 3: Red
+% 
+%     plot(h_13(1,:),h_13(2,:),'r'); 
+% 
+%     %Plots the hyperbola between mics 1 and 4: Magenta
+% 
+%     plot(h_14(1,:), h_14(2,:), 'm');
+%   
+% 
+%     %Plots the hyperbola between mics 3 and 4: Blue
+% 
+%     plot(h_34(1,:),h_34(2,:),'b');
+% 
+%     
+%     %Plots the hyperbola between mics 2 and 4: Cyan
+% 
+%     plot(h_24(1,:), h_24(2,:), 'c');
+% 
+%  
+%     %Plots the hyperbola between mics 2 and 3: Green
+%     plot(h_23(1,:), h_23(2,:), 'g');
+%   
+%     legend('Receiver 1','Receiver 2','Receiver 3','Receiver 4','hyperbola 12','hyperbola 13','hyperbola 14','hyperbola 34', 'hyperbola 24', 'hyperbola 23');
+% else
+% end
+    
+%     
 % %%%%%%%%%%%%%%%%%%    CALCULATION OF INTERSECTIONS  %% %%%%%%%%%%%%%%%
 % This section calculates all the intersections of the 6 hyperbolae in the
 % relevant region based on the time difference."Intersections" between
@@ -169,8 +237,6 @@ y_mid_24 = (y_r(2) + y_r(4))/2;
 % shifting and rotation causes the arcs that would correspond to positive
 % and negative time differences for the other hyperbolae switch. 
 %                     
-Space_x = x_r(4);
-Space_y = y_r(4);
             %Intersections between h_12 and the others
     qmin1213 = hypsect(h_12, h_13, t_max_12, t_max_13, Space_x, Space_y);
 %     plot (qmin1213(1), qmin1213(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
@@ -199,7 +265,7 @@ Space_y = y_r(4);
     %Intersections between h_14 and the others (exlcuding those
             %already calculated above)
     
-    qmin1423 = hypsectB(h_23, h_14, t_max_23, t_max_14, Space_x, Space_y);
+    qmin1423 = hypsectC(h_14, h_23, t_max_14, t_max_23, Space_x, Space_y);
 %     plot (qmin1423(1), qmin1423(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
     
     qmin1424 = hypsect(h_14, h_24, t_max_14, t_max_24, Space_x, Space_y);
@@ -223,6 +289,22 @@ Space_y = y_r(4);
     qmin2434 = hypsect(h_24, h_34, t_max_24, t_max_34, Space_x, Space_y);
 %     plot (qmin2434(1), qmin2434(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
 
+    qmin = zeros(13,2);
+    
+    qmin(1,:) = qmin1213(1,1:2);
+    qmin(2,:) = qmin1214(1,1:2);
+    qmin(3,:) = qmin1223(1,1:2);
+    qmin(4,:) = qmin1224(1,1:2);
+    qmin(5,:) = qmin1314(1,1:2);
+    qmin(6,:) = qmin1323(1,1:2);
+    qmin(7,:) = qmin1334(1,1:2);
+    qmin(8,:) = qmin1423(1,1:2);
+    qmin(9,:) = qmin1424(1,1:2);
+    qmin(10,:) = qmin1434(1,1:2);
+    qmin(11,:) = qmin2324(1,1:2);
+    qmin(12,:) = qmin2334(1,1:2);
+    qmin(13,:) = qmin2434(1,1:2);
+
 IntersectionList = [0 0 0 0 0 0 0 0 0 0 0 0 0];
     
     %------------------CALCULATION OF PRELIMINARY LOCATION----------------------%
@@ -230,12 +312,38 @@ IntersectionList = [0 0 0 0 0 0 0 0 0 0 0 0 0];
     %   of the x and y coordinates of all the intersectionsn calculated
     %   above. This location is the plotted as a magenta diamond. 
     
+    
     prexmatrix = [qmin1213(1),qmin1214(1),qmin1223(1),qmin1224(1),qmin1314(1),qmin1323(1),qmin1334(1),qmin1423(1),qmin1424(1),qmin1434(1),qmin2324(1),qmin2334(1),qmin2434(1)];
     
     preymatrix = [qmin1213(2),qmin1214(2),qmin1223(2),qmin1224(2),qmin1314(2),qmin1323(2),qmin1334(2),qmin1423(2),qmin1424(2),qmin1434(2),qmin2324(2),qmin2334(2),qmin2434(2)];
     
-    preloc = [mean(meanmaker(prexmatrix)) + std((meanmaker(prexmatrix)),1),mean(meanmaker(preymatrix)) + std((meanmaker(preymatrix)),1)];
-%     plot (preloc(1), preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
+    %The standard deviation is then calculated, and added or subtracted to
+    %the mean depending on where the mean falls on the grid. 
+    prepreloc = [mean(meanmaker(prexmatrix)),mean(meanmaker(preymatrix))];
+    standDevX = 0;
+    standDevY = 0;
+  if (prepreloc(1) >= Space_x/2) && (prepreloc(2) >= Space_y/2)
+        standDevX = std((meanmaker(prexmatrix)),1);
+        standDevY = std((meanmaker(preymatrix)),1);
+%         callout = 'region 4'   %%for debugging
+    end
+    if (prepreloc(1) >= Space_x/2) && (prepreloc(2) <= Space_y/2)
+            standDevX = std((meanmaker(prexmatrix)),1);
+            standDevY = -1*std((meanmaker(preymatrix)),1);
+%         callout = 'region 2'  %%for debugging
+    end
+    if (prepreloc(1) < Space_x/2) && (prepreloc(2) < Space_y/2)
+            standDevX = -1*std((meanmaker(prexmatrix)),1);
+            standDevY = -1*std((meanmaker(preymatrix)),1);
+%         callout = 'region 1'  %%for debugging
+    end
+    if (prepreloc(1) < Space_x/2) && (prepreloc(2) > Space_y/2)
+            standDevX = -1*std((meanmaker(prexmatrix)),1);
+            standDevY = std((meanmaker(preymatrix)),1);
+%         callout = 'region 3'  %%for debugging
+    end    
+    
+    preloc = [prepreloc(1) + standDevX, prepreloc(2) + standDevY];
     
     
 %%%%%%%%%%%CREATING SECTIONS%%%%%%%%    
@@ -311,31 +419,124 @@ realloc = [0,0];
 intMat = [0;0];
 
 
+
 if (Space == 1)
     rexmatrix = [qmin1213(1),qmin1214(1),qmin1223(1),qmin1314(1),qmin1323(1),qmin1423(1)];
     reymatrix = [qmin1213(2),qmin1214(2),qmin1223(2),qmin1314(2),qmin1323(2),qmin1423(2)];
-    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    prerealloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) >= Space_y/2)
+        standDevX = std((meanmaker(rexmatrix)),1);
+        standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 4'   %%for debugging
+    end
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) <= Space_y/2)
+            standDevX = std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 2'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) < Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 1'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) > Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 3'  %%for debugging
+    end
+  
+    realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
     intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 2)
     rexmatrix = [qmin1214(1),qmin1223(1),qmin1423(1),qmin1434(1),qmin2334(1)];
     reymatrix = [qmin1214(2),qmin1223(2),qmin1423(2),qmin1434(2),qmin2334(2)];
-    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    prerealloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) >= Space_y/2)
+        standDevX = std((meanmaker(rexmatrix)),1);
+        standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 4'   %%for debugging
+    end
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) <= Space_y/2)
+            standDevX = std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 2'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) < Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 1'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) > Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 3'  %%for debugging
+    end
+  
+    realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
     intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 3)
     rexmatrix = [qmin1214(1),qmin1223(1),qmin1224(1),qmin1423(1),qmin1424(1),qmin2324(1)];
     reymatrix = [qmin1214(2),qmin1223(2),qmin1224(2),qmin1423(2),qmin1424(2),qmin2324(2)];
-    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    prerealloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) >= Space_y/2)
+        standDevX = std((meanmaker(rexmatrix)),1);
+        standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 4'   %%for debugging
+    end
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) <= Space_y/2)
+            standDevX = std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 2'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) < Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 1'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) > Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 3'  %%for debugging
+    end
+  
+    realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
     intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 4)
     rexmatrix = [qmin1314(1),qmin1323(1),qmin1423(1),qmin1424(1),qmin2324(1)];
     reymatrix = [qmin1314(2),qmin1323(2),qmin1423(2),qmin1424(2),qmin2324(2)];
-    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    prerealloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) >= Space_y/2)
+        standDevX = std((meanmaker(rexmatrix)),1);
+        standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 4'   %%for debugging
+    end
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) <= Space_y/2)
+            standDevX = std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 2'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) < Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 1'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) > Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 3'  %%for debugging
+    end
+  
+    realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
     intMat = [rexmatrix; reymatrix];
 end
 
@@ -347,30 +548,123 @@ end
 if (Space == 6)
     rexmatrix = [qmin1314(1),qmin1323(1),qmin1423(1),qmin1424(1),qmin2324(1)];
     reymatrix = [qmin1314(2),qmin1323(2),qmin1423(2),qmin1424(2),qmin2324(2)];
-    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    prerealloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) >= Space_y/2)
+        standDevX = std((meanmaker(rexmatrix)),1);
+        standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 4'   %%for debugging
+    end
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) <= Space_y/2)
+            standDevX = std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 2'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) < Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 1'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) > Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 3'  %%for debugging
+    end
+  
+    realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
     intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 7)
     rexmatrix = [qmin1314(1),qmin1323(1),qmin1334(1),qmin1423(1),qmin1434(1),qmin2334(1)];
     reymatrix = [qmin1314(2),qmin1323(2),qmin1334(2),qmin1423(2),qmin1434(2),qmin2334(2)];
-    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    prerealloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) >= Space_y/2)
+        standDevX = std((meanmaker(rexmatrix)),1);
+        standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 4'   %%for debugging
+    end
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) <= Space_y/2)
+            standDevX = std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 2'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) < Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 1'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) > Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 3'  %%for debugging
+    end
+  
+    realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
     intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 8)
     rexmatrix = [qmin1214(1),qmin1223(1),qmin1423(1),qmin1434(1),qmin2334(1)];
     reymatrix = [qmin1214(2),qmin1223(2),qmin1423(2),qmin1434(2),qmin2334(2)];
-    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    prerealloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) >= Space_y/2)
+        standDevX = std((meanmaker(rexmatrix)),1);
+        standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 4'   %%for debugging
+    end
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) <= Space_y/2)
+            standDevX = std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 2'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) < Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 1'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) > Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 3'  %%for debugging
+    end
+   
+    realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
     intMat = [rexmatrix; reymatrix];
 end
 
 if (Space == 9)
     rexmatrix = [qmin1423(1),qmin1424(1),qmin1434(1),qmin2324(1),qmin2334(1),qmin2434(1)];
     reymatrix = [qmin1423(2),qmin1424(2),qmin1434(2),qmin2324(2),qmin2334(2),qmin2434(2)];
-    realloc = [mean(meanmaker(rexmatrix)) + std((meanmaker(rexmatrix)),1),mean(meanmaker(reymatrix)) + std((meanmaker(reymatrix)),1)];
+    prerealloc = [mean(meanmaker(rexmatrix)),mean(meanmaker(reymatrix))];
+    
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) >= Space_y/2)
+        standDevX = std((meanmaker(rexmatrix)),1);
+        standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 4'   %%for debugging
+    end
+    if (prerealloc(1) >= Space_x/2) && (prerealloc(2) <= Space_y/2)
+            standDevX = std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 2'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) < Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = -1*std((meanmaker(reymatrix)),1);
+%         callout = 'region 1'  %%for debugging
+    end
+    if (prerealloc(1) < Space_x/2) && (prerealloc(2) > Space_y/2)
+            standDevX = -1*std((meanmaker(rexmatrix)),1);
+            standDevY = std((meanmaker(reymatrix)),1);
+%         callout = 'region 3'  %%for debugging
+    end
+  
+    realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
     intMat = [rexmatrix; reymatrix];
 end
+
 
 
 %     plot (realloc(1), realloc(2),'dk','MarkerFaceColor','c','markersize',11,'LineWidth',1);
@@ -518,9 +812,56 @@ end
 %                 -Virdie Guy-
     function [hypmin] = hypsect(hyp1, hyp2, time1, time2, space_x, space_y)
     hypmin = [0,0,inf];
-    if (time1 == 0) || (time2 == 0)
-        hypmin = [space_x/2, space_y/2];
+       if (time1 == 0) && (time2 == 0)
+        for i = 1:length(hyp1)
+            for j = 1:length(hyp2)
+                distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
     end
+            end
+        end
+       end
+    if (time1 == 0) && (time2 < 0)
+        for i = 1:length(hyp1)
+            for j = 1:(length(hyp2)-1)/2
+                distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+            end
+        end
+    end
+    if (time1 == 0) && (time2 > 0)
+        for i = 1:length(hyp1)
+             for j = (length(hyp2)+3)/2:length(hyp2)
+    distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+             end
+        end
+    end
+     if (time1 < 0) && (time2 == 0)
+         for i = 1:(length(hyp1)-1)/2
+             for j = 1:length(hyp2)
+                 distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+             end
+        end
+     end
+    if (time1 > 0) && (time2 == 0)
+        for i = (length(hyp1)+3)/2:length(hyp1)
+             for j = 1:length(hyp2)
+                 distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+             end
+        end
+     end
     if (time1 < 0) && (time2 < 0) 
     for i = 1:(length(hyp1)-1)/2
         for j = 1:(length(hyp2)-1)/2
@@ -570,9 +911,56 @@ end
     
      function [hypmin] = hypsectB(hyp1, hyp2, time1, time2,space_x,space_y)
     hypmin = [0,0,inf];
-    if (time1 == 0) || (time2 == 0)
-         hypmin = [space_x/2, space_y/2];
+    if (time1 == 0) && (time2 == 0)
+        for i = 1:length(hyp1)
+            for j = 1:length(hyp2)
+                distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
     end
+            end
+        end
+    end
+        if (time1 == 0) && (time2 < 0)
+        for i = 1:length(hyp1)
+            for j = 1:(length(hyp2)-1)/2
+                distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+            end
+        end
+    end
+    if (time1 == 0) && (time2 > 0)
+        for i = 1:length(hyp1)
+             for j = (length(hyp2)+3)/2:length(hyp2)
+    distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+             end
+        end
+    end
+     if (time1 < 0) && (time2 == 0)
+         for i = 1:(length(hyp1)-1)/2
+             for j = 1:length(hyp2)
+                 distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+             end
+        end
+     end
+    if (time1 > 0) && (time2 == 0)
+        for i = (length(hyp1)+3)/2:length(hyp1)
+             for j = 1:length(hyp2)
+                 distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+             end
+        end
+     end
     if (time1 < 0) && (time2 < 0) 
     for i = (length(hyp1)+3)/2:length(hyp1)
         for j = 1:(length(hyp2)-1)/2
@@ -616,7 +1004,105 @@ end
     
    
      end
+     %%%%%HYPSECTC%% This is for dealing with intersection 1423. 
+    % NOTE: For this to be accurate, hyp1 and time1 MUST correspond to h_14
+    % and t_max_14, respectively. 
     
+    function [hypmin] = hypsectC(hyp1, hyp2, time1, time2, space_x, space_y)
+      hypmin = [0,0,inf];
+       if (time1 == 0) && (time2 == 0)
+        for i = 1:length(hyp1)
+            for j = 1:length(hyp2)
+                distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+            end
+        end
+       end
+    if (time1 == 0) && (time2 < 0)
+        for i = 1:length(hyp1)
+            for j = (length(hyp2)+3)/2:length(hyp2)
+                distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+            end
+        end
+    end
+    if (time1 == 0) && (time2 > 0)
+        for i = 1:length(hyp1)
+             for j =  1:(length(hyp2)-1)/2
+    distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+             end
+        end
+    end
+     if (time1 < 0) && (time2 == 0)
+         for i = 1:(length(hyp1)-1)/2
+             for j = 1:length(hyp2)
+                 distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+             end
+        end
+     end
+    if (time1 > 0) && (time2 == 0)
+        for i = (length(hyp1)+3)/2:length(hyp1)
+             for j = 1:length(hyp2)
+                 distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+             end
+        end
+     end
+    if (time1 < 0) && (time2 < 0) 
+    for i = 1:(length(hyp1)-1)/2
+        for j = (length(hyp2)+3)/2:length(hyp2)
+    distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+        end
+    end
+    end
+     if (time1 > 0) && (time2 > 0) 
+    for i = (length(hyp1)+3)/2:length(hyp1)
+        for j = 1:(length(hyp2)-1)/2
+    distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+        end
+    end
+     end
+     if (time1 > 0) && (time2 < 0) 
+    for i = (length(hyp1)+3)/2:length(hyp1)
+        for j = (length(hyp2)+3)/2:length(hyp2)
+    distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+        end
+    end
+     end
+     if (time1 < 0) && (time2 > 0) 
+    for i = 1:(length(hyp1)-1)/2
+        for j = 1:(length(hyp2)-1)/2
+    distancenum = sqrt((hyp1(1,i) - hyp2(1,j))^2 + (hyp1(2,i) - hyp2(2,j))^2);
+    if distancenum < hypmin(3)
+        hypmin = [hyp1(1,i), hyp1(2,i), distancenum];
+    end
+        end
+    end
+     end
+    
+   
+    end
     %%%%%%%%%MEANMAKER FUNCTION%%%%%%%%%
     %This is used for generating the means used in calculating the
     %estimated locations based on intersections of hyperbolae. 
@@ -629,4 +1115,13 @@ end
             meanmat(tracker) = inputmat(i);
         end
     end
- end
+   end
+   %%%%%%%%%%%LINE_MAKER FUNCTION%%%%%%%%%%%%%%%%%%
+   %This is for generating a line between two points in the event that
+   %the time difference of arrival between the mics is zero
+function [x, y] = Line_Maker(x_1, y_1, x_2, y_2, pointNum)
+
+x = linspace(x_1, x_2, pointNum*2 + 1);
+y = linspace(y_1, y_2, pointNum*2 + 1);
+
+end
