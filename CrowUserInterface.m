@@ -1,5 +1,6 @@
 %% **************************** Crow Call UI ****************************
 %  Author: Derek DeLizo
+%  CSV storage format: Start,Stop,xLoc,yLoc,fundFreq,peakFreq,gaps,pauses,bandwidth
 
 
 function varargout = CrowUserInterface(varargin)
@@ -26,7 +27,7 @@ function varargout = CrowUserInterface(varargin)
 
 % Edit the above text to modify the response to help CrowUserInterface
 
-% Last Modified by GUIDE v2.5 05-Jan-2018 21:49:06
+% Last Modified by GUIDE v2.5 08-Mar-2018 18:18:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -75,8 +76,56 @@ function varargout = CrowUserInterface_OutputFcn(~, ~, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-%% ****************************************** Localization ******************************************
-%The functions below work with the Crow Call Detection
+
+
+% --- Executes on button press in LoadData.
+function LoadData_Callback(hObject, eventdata, handles)
+AudioFile1 = get(handles.Audio1,'String');
+AudioFile2 = get(handles.Audio2,'String');
+AudioFile3 = get(handles.Audio3,'String');
+AudioFile4 = get(handles.Audio4,'String');
+fileName = get(handles.OutputFile,'String');
+LoadIndicesStars = dlmread(fileName);
+startStopIndicies = [LoadIndicesStars(:,1) LoadIndicesStars(:,2)];
+stars = [LoadIndicesStars(:,3) LoadIndicesStars(:,4)];
+setappdata(0,'OutputFile',fileName);
+setappdata(0,'StartStopIndex',startStopIndicies);
+setappdata(0,'StarIndex',stars);
+setappdata(0,'Index',1);
+setappdata(0,'NumberOfCalls',length(startStopIndicies))
+setappdata(0,'GraphRange',4);
+setappdata(0,'GraphMax',4);
+setappdata(0,'GraphMin',1);
+setappdata(0,'LocalizeEnabled',false);
+
+setMultiSoundTable(AudioFile1,AudioFile2,AudioFile3,AudioFile4);
+graphEnabled = get(handles.GraphMenu,'Enable');
+if strcmp(graphEnabled,'off')
+    set(handles.GraphMenu,'Enable','on');
+end
+
+
+%Loads the Audio file
+%Then stores the information in the table
+function setMultiSoundTable(soundPath1,soundPath2,soundPath3,soundPath4)
+[wave1,~] = audioread(soundPath1);
+[wave2,~] = audioread(soundPath2);
+[wave3,~] = audioread(soundPath3);
+[wave4,fs] = audioread(soundPath4);
+t=0:1./fs:(length(wave1)-1)./fs;
+setappdata(0,'Length',length(wave1));
+setappdata(0,'AudioPath1',soundPath1);
+setappdata(0,'AudioPath2',soundPath2);
+setappdata(0,'AudioPath3',soundPath3);
+setappdata(0,'AudioPath4',soundPath4);
+setappdata(0,'Audio1',wave1);
+setappdata(0,'Audio2',wave2);
+setappdata(0,'Audio3',wave3);
+setappdata(0,'Audio4',wave4);
+setappdata(0,'fs',fs);
+setappdata(0,'Time',t);
+
+
 
 % --- Executes on button press in AudioSelect1.
 function AudioSelect1_Callback(hObject, eventdata, handles)
@@ -136,30 +185,58 @@ set(handles.Audio4,'String',inFilePath);
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 function Localize_Callback(hObject, eventdata, handles)
-AudioFile1 = get(handles.Audio1,'String');
-AudioFile2 = get(handles.Audio2,'String');
-AudioFile3 = get(handles.Audio3,'String');
-AudioFile4 = get(handles.Audio4,'String');
-ssIndexes = getappdata(0,'StartStopIndex');
-fs = getappdata(0,'fs');
-start = ssIndexes(2,1);
-stop = ssIndexes(2,2);
-x_r(1) = 0; x_r(2) = 3; x_r(3) = 0.0; x_r(4) = 3;
-y_r(1) = 0; y_r(2) = 0.0; y_r(3) = 3; y_r(4) = 3;
-[preloc, realloc] = Crow_2D_ExperimentFunctions(AudioFile1,AudioFile2,AudioFile3,AudioFile4,start,stop,1,false);
-axes(handles.axes6);
-plot (preloc(1), preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
-hold on
-    plot(x_r(1),y_r(1),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); %plots a blue dot at the location of the four microphones
-    plot(x_r(2),y_r(2),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
-    plot(x_r(3),y_r(3),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
-    plot(x_r(4),y_r(4),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
-hold off
-legend('Estimated Location');
-
-
-%% ****************************************** Detection ******************************************
-%The functions below work with the Crow Call Detection
+    setappdata(0,'LocalizeEnabled',true);
+    LocalizeGraph(handles);
+    
+    
+function LocalizeGraph(handles)
+    AudioFile1 = getappdata(0,'AudioPath1');
+    AudioFile2 = getappdata(0,'AudioPath2');
+    AudioFile3 = getappdata(0,'AudioPath3');
+    AudioFile4 = getappdata(0,'AudioPath4');
+    ssIndexes = getappdata(0,'StartStopIndex');
+    index = getappdata(0,'Index');
+    fs = getappdata(0,'fs');
+    PreStartTime = 114;
+    PreEndTime = 115;
+    TimeCorrection = Crow_2D_LocalizationPrelim(AudioFile1, AudioFile2, AudioFile3, AudioFile4, PreStartTime, PreEndTime,2, true);
+    start = ssIndexes(index,1) / fs;
+    stop = ssIndexes(index,2) / fs;
+    %[preloc, realloc] = Crow_2D_ExperimentFunctions(AudioFile1,AudioFile2,AudioFile3,AudioFile4,start,stop,1,false);
+    [hypMat, intMat, realloc] = Crow_2D_Localization(AudioFile1,AudioFile2,AudioFile3,AudioFile4,220,221,2,false,TimeCorrection);
+    
+    axes(handles.axes6);
+    x_r(1) = 0; x_r(2) = 3; x_r(3) = 0.0; x_r(4) = 3;
+    y_r(1) = 0; y_r(2) = 0.0; y_r(3) = 3; y_r(4) = 3;
+    
+    plot (realloc(1), realloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
+    
+    hold on
+        plot(x_r(1),y_r(1),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1); %plots a blue dot at the location of the four microphones
+        plot(x_r(2),y_r(2),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+        plot(x_r(3),y_r(3),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+        plot(x_r(4),y_r(4),'ob','MarkerFaceColor','b','markersize',14,'LineWidth',1);
+        
+        %[rows columns] = size(hypMat);
+        
+        plot(hypMat(1,:),hypMat(2,:),'r');
+        plot(hypMat(3,:),hypMat(4,:),'b');
+        plot(hypMat(5,:),hypMat(6,:),'g');
+        plot(hypMat(7,:),hypMat(8,:),'m');
+        plot(hypMat(9,:),hypMat(10,:),'c');
+        plot(hypMat(11,:),hypMat(12,:),'y');
+        
+        [rows columns] = size(intMat);
+        
+        for x = 1 : rows
+            plot(intMat(1,x),intMat(2,x),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
+        end
+        
+        xlim([0 3]);
+        ylim([0 3]);
+    hold off
+    
+    legend('Estimated Location');
 
 % --- Executes on button press in PlotCall.
 function PlotCall_Callback(hObject, eventdata, handles)
@@ -167,24 +244,92 @@ function PlotCall_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 idx = getappdata(0,'Index');
-startStop
-if (idx + 1) <= 5
-    idx = idx + 1;
+numCalls = getappdata(0,'NumberOfCalls');
+numGraph = getappdata(0,'GraphRange');
+maxGraph = getappdata(0,'GraphMax');
+minGraph = getappdata(0,'GraphMin');
+localEn = getappdata(0,'LocalizeEnabled');
+if (idx + 1) <= numCalls
+    if (idx + 1) > maxGraph
+        maxGraph = maxGraph + numGraph;
+        minGraph = minGraph + numGraph;
+        setappdata(0,'GraphMax',maxGraph);
+        setappdata(0,'GraphMin',minGraph);
+        idx = idx + 1;
+    else
+        idx = idx + 1;
+    end
 end
+
 setappdata(0,'Index',idx);
+GraphSpectogram(handles,idx);
+
+if localEn == true
+    LocalizeGraph(handles);
+end
 
 % --- Executes on button press in plotprevious.
 function plotprevious_Callback(hObject, eventdata, handles)
-% hObject    handle to plotprevious (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 idx = getappdata(0,'Index');
-if (idx - 1) > 0
-    idx = idx - 1;
+numCalls = getappdata(0,'NumberOfCalls');
+numGraph = getappdata(0,'GraphRange');
+maxGraph = getappdata(0,'GraphMax');
+minGraph = getappdata(0,'GraphMin');
+localEn = getappdata(0,'LocalizeEnabled');
+if (idx - 1) >= 1
+    if (idx - 1) < minGraph
+        maxGraph = maxGraph - numGraph;
+        minGraph = minGraph - numGraph;
+        setappdata(0,'GraphMax',maxGraph);
+        setappdata(0,'GraphMin',minGraph);
+        idx = idx - 1;
+    else
+        idx = idx - 1;
+    end
 end
+
 setappdata(0,'Index',idx);
+GraphSpectogram(handles,idx);
+
+if localEn == true
+    LocalizeGraph(handles);
+end
+
+% --- Executes on button press in NextSection.
+function NextSection_Callback(hObject, eventdata, handles)
+idx = getappdata(0,'Index');
+numCalls = getappdata(0,'NumberOfCalls');
+numGraph = getappdata(0,'GraphRange');
+maxGraph = getappdata(0,'GraphMax');
+minGraph = getappdata(0,'GraphMin');
+if (maxGraph + numGraph) <= numCalls
+    maxGraph = maxGraph + numGraph;
+    minGraph = minGraph + numGraph;
+    idx = minGraph;
+    setappdata(0,'GraphMax',maxGraph);
+    setappdata(0,'GraphMin',minGraph);
+    setappdata(0,'Index',idx);
+end
+GraphSpectogram(handles,idx);
 
 
+% --- Executes on button press in PrevSection.
+function PrevSection_Callback(hObject, eventdata, handles)
+idx = getappdata(0,'Index');
+numCalls = getappdata(0,'NumberOfCalls');
+numGraph = getappdata(0,'GraphRange');
+maxGraph = getappdata(0,'GraphMax');
+minGraph = getappdata(0,'GraphMin');
+if (minGraph - numGraph) >= 1
+    maxGraph = maxGraph - numGraph;
+    minGraph = minGraph - numGraph;
+    idx = minGraph;
+    setappdata(0,'GraphMax',maxGraph);
+    setappdata(0,'GraphMin',minGraph);
+    setappdata(0,'Index',idx);
+end
+GraphSpectogram(handles,idx);
+    
 % Plays the crow sound at the current index
 function playsound_Callback(hObject, eventdata, handles)
 % hObject    handle to playsound (see GCBO)
@@ -192,7 +337,7 @@ function playsound_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 fs = getappdata(0,'fs');
-channel1 = getappdata(0,'Channel1');
+channel1 = getappdata(0,'Audio1');
 idx = getappdata(0,'Index');
 ssTime = getappdata(0,'StartStopIndex');
 startTime = ssTime(idx,1);
@@ -244,38 +389,97 @@ fileName = get(handles.OutputName,'String');
 setSoundTable(audioPath);
 Crow_Call_Detection_Function(audioPath,fileName);
 
+function GraphEnergy(handles,index)
+    axes(handles.axes3);
+    t = getappdata(0,'Time');
+    ss = getappdata(0,'StartStopIndex');
+    fs = getappdata(0,'fs');
+    filePath = getappdata(0,'OutputFile');
+    SoundDetect = getappdata(0,'StarIndex');
+    idx = getappdata(0,'Index');
+    maxWidth = getappdata(0,'GraphMax');
+    minWidth = getappdata(0,'GraphMin');
+    delimeter = find(filePath == '.');
+    outFilePath = strcat([filePath(1:delimeter-1) 'Energy' filePath(delimeter:end)]);
+    array1 = dlmread(outFilePath);
+    startIdx = ss(minWidth,1);
+    stopIdx = ss(maxWidth,2);
+    array1 = array1(startIdx:stopIdx);
+    L = length(array1);
+    plot(t(startIdx:stopIdx),array1);
+    xlabel('Time');
+    ylabel('Energy');
+    title('Energy vs Time');
+    
+    hold on
+    for i = minWidth:maxWidth
+        if ((SoundDetect(i,1) ~= 0) && (SoundDetect(i,2) ~= 0))
+            if i == index
+                plot(SoundDetect(i,1),SoundDetect(i,2),'p','MarkerFaceColor','g','markersize',11,'LineWidth',1)
+            else
+                plot(SoundDetect(i,1),SoundDetect(i,2),'r*')
+            end
+        end
+    end
+    xlim([t(startIdx) t(stopIdx)]);
+    
+    hold off
 
-% --- Executes on button press in LoadData.
-function LoadData_Callback(hObject, eventdata, handles)
-audioPath = get(handles.AudioLoad,'String');
-fileName = get(handles.OutputFile,'String');
-LoadIndicesStars = dlmread(fileName);
-startStopIndicies = [LoadIndicesStars(:,1) LoadIndicesStars(:,2)];
-stars = [LoadIndicesStars(:,3) LoadIndicesStars(:,4)];
-setappdata(0,'OutputFile',fileName);
-setappdata(0,'StartStopIndex',startStopIndicies);
-setappdata(0,'StarIndex',stars);
-setappdata(0,'Index',1);
-setappdata(0,'NumberOfCalls',length(startStopIndicies))
-setSoundTable(audioPath);
-graphEnabled = get(handles.GraphMenu,'Enable');
-if strcmp(graphEnabled,'off')
-    set(handles.GraphMenu,'Enable','on');
-end
+function GraphSpectogram(handles,index)
+    array = getappdata(0,'Audio1');
+    fs = getappdata(0,'fs');
+    ss = getappdata(0,'StartStopIndex'); %%Start stop indexes matrik intialized
+    index = getappdata(0,'Index');
+    t = getappdata(0,'Time');
+    SoundDetect = getappdata(0,'StarIndex');
+    maxWidth = getappdata(0,'GraphMax');
+    minWidth = getappdata(0,'GraphMin');
+    maxWidth
+    minWidth
+    startIdx = ss(minWidth,1);
+    stopIdx = ss(maxWidth,2);
+    
+    Fmin = 500; %Minimum Frequency
+    Fmax = 2000; %Maximum Frequency
+    n = 7;
+    Nfft = 256;
+    win_size = 256;
+    ovlap = 0.90;
+    beginFreq = Fmin/(fs/2);
+    endFreq = Fmax/(fs/2);
+    
+    [b,a] = butter(n,[beginFreq, endFreq], 'bandpass');
+    spectoWave = filter(b, a, array(startIdx:stopIdx));
+    [~,FFM_1,TTM_1,PM_1] = spectrogram(spectoWave,hanning(win_size),round(ovlap*win_size),Nfft,fs);
 
-%Loads the Audio file
-%Then stores the information in the table
-function setSoundTable(soundPath)
-[wave,fs] = audioread(soundPath);
-setappdata(0,'Length',length(wave));
-setappdata(0,'Channel1',wave);
-setappdata(0,'fs',fs);
-
-function GraphEnergy(handles,)
-
-% Manages all the plots for axes 3 using a switch statement
+    imagesc(t(startIdx:stopIdx),FFM_1(1:Nfft/2+1)/1000,10*log10(PM_1(1:Nfft/2+1,:))/10e-6);axis xy;
+    hold on
+    for i = minWidth:maxWidth
+        if ((SoundDetect(i,1) ~= 0) && (SoundDetect(i,2) ~= 0))
+            if i == index
+                plot(SoundDetect(i,1),5,'p','MarkerFaceColor','g','markersize',11,'LineWidth',1);
+            else
+                plot(SoundDetect(i,1),5,'r*');
+                SoundDetect(i,1)
+                SoundDetect(i,2)
+            end
+        end
+    end
+    xlim([t(startIdx) t(stopIdx)]);
+    
+    hold off
+    colormap(jet);
+    ylabel('Frequency (KHz)');
+    xlabel('Time (s)');
+    caxis([-3e+7 -0.5e+7])
+    cBar = colorbar('Direction','reverse');
+    cBar.Label.String = 'dB';
+        
+        
+    
+%% Graph dropdown menu
 function GraphMenu_Callback(~, ~, handles)
-array = getappdata(0,'Channel1');
+array = getappdata(0,'Audio1');
 fs = getappdata(0,'fs');
 ss = getappdata(0,'StartStopIndex'); %%Start stop indexes matrik intialized
 index = getappdata(0,'Index');
@@ -298,10 +502,6 @@ axes(handles.axes3);
 switch get(handles.GraphMenu,'Value')
     case 2
         %% ****************************************** Post-Filtered Amplitude ********************************************
-        button = get(handles.GroupChoice,'Visible');
-        if strcmp(button,'on') == 1
-            set(handles.GroupChoice,'Visible','off');
-        end
         t=0:1./fs:(length(array)-1)./fs;
         plot(t,array(:,2))
         title('PostFiltered Channel Two');
@@ -309,10 +509,6 @@ switch get(handles.GraphMenu,'Value')
         xlabel('Time (in seconds)');
     case 3
         %% ****************************************** Post-Filtered Spectrum ********************************************
-        button = get(handles.GroupChoice,'Visible');
-        if strcmp(button,'on') == 1
-            set(handles.GroupChoice,'Visible','off');
-        end
         soundData2fft = fft(array(:,2),Nfft);
         F = linspace(0,fs,Nfft);
         plot(F(1:Nfft/2+1),abs(soundData2fft(1:Nfft/2+1,1)))
@@ -321,60 +517,14 @@ switch get(handles.GraphMenu,'Value')
         xlabel('Freq (in Hz)');
     case 4
         %% ****************************************** Energy Graph ******************************************************
-        button = get(handles.GroupChoice,'Visible');
-        if strcmp(button,'on') == 1
-            set(handles.GroupChoice,'Visible','off');
-        end
+        GraphEnergy(handles,index);
         
-        filePath = getappdata(0,'OutputFile');
-        SoundDetect = getappdata(0,'StarIndex');
-        delimeter = find(filePath == '.');
-        outFilePath = strcat([filePath(1:delimeter-1) 'Energy' filePath(delimeter:end)]);
-        array1 = dlmread(outFilePath);
-        L = length(array1);
-        t=0:1./fs:(length(array1)-1)./fs;
-        plot(t(1:L),array1);
-        xlabel('Time');
-        ylabel('Energy');
-        title('Energy vs Time');
-        
-        hold on
-        for i = 1:length(SoundDetect)
-            if ((SoundDetect(i,1) ~= 0) && (SoundDetect(i,2) ~= 0))
-                if i == index
-                    plot(SoundDetect(i,1),SoundDetect(i,2),'g*')
-                else    
-                    plot(SoundDetect(i,1),SoundDetect(i,2),'r*')
-                end
-            end
-        end
-        
-        hold off
     case 5
         %% ****************************************** Spectogram Graph **************************************************
-        pnlVisible = get(handles.GroupChoice,'Visible');
-        if strcmp(pnlVisible,'off') == 1
-            set(handles.GroupChoice,'Visible','on');
-        end
-        
-        fullWave = get(handles.RadioFull,'Value');
-        if fullWave == 0
-            startIdx = ss(index,1);
-            stopIdx = ss(index,2);
-            spectoWave = filter(b, a, array(startIdx:stopIdx));
-            [~,FFM_1,TTM_1,PM_1] = spectrogram(spectoWave,hanning(win_size),round(ovlap*win_size),Nfft,fs);
-        else
-            [~,FFM_1,TTM_1,PM_1] = spectrogram(wave2(:,2),hanning(win_size),round(ovlap*win_size),Nfft,fs);
-        end
-        
-        imagesc(TTM_1,FFM_1(1:Nfft/2+1)/1000,10*log10(PM_1(1:Nfft/2+1,:))/10e-6);axis xy;
-        colormap(jet);
-        ylabel('Frequency (KHz)');
-        xlabel('Time (s)');
-        caxis([-3e+7 -0.5e+7])
-        cBar = colorbar('Direction','reverse');
-        cBar.Label.String = 'dB';
+        GraphSpectogram(handles,index);
 end
+
+%% ****************************************** Useless Create Function **************************************************
 
 % --- Executes during object creation, after setting all properties.
 function GraphMenu_CreateFcn(hObject, eventdata, handles)
@@ -388,15 +538,11 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 % --- Executes on button press in checkbox1.
 function checkbox1_Callback(hObject, eventdata, handles)
 % hObject    handle to checkbox1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of checkbox1
-
 
 % --- Executes on button press in DisplayMic.
 function DisplayMic_Callback(hObject, eventdata, handles)
@@ -404,15 +550,11 @@ function DisplayMic_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of DisplayMic
-
-
 % --- Executes on button press in DisplayHyperbola.
 % hObject    handle to DisplayHyperbola (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 function DisplayHyperbola_Callback(hObject, eventdata, handles)
-
 
 % --- Executes on button press in DisplayIntersect.
 % hObject    handle to DisplayIntersect (see GCBO)
@@ -420,13 +562,11 @@ function DisplayHyperbola_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 function DisplayIntersect_Callback(hObject, eventdata, handles)
 
-
 % --- Executes on button press in DisplayReal.
 % hObject    handle to DisplayReal (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 function DisplayReal_Callback(hObject, eventdata, handles)
-
 
 % --- Executes on button press in DisplayPrelim.
 % hObject    handle to DisplayPrelim (see GCBO)
@@ -440,7 +580,6 @@ function DisplayPrelim_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 function AudioLoad_Callback(hObject, eventdata, handles)
 
-
 % --- Executes during object creation, after setting all properties.
 function AudioLoad_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to AudioLoad (see GCBO)
@@ -453,16 +592,10 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function Audio1_Callback(hObject, eventdata, handles)
 % hObject    handle to Audio1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of Audio1 as text
-%        str2double(get(hObject,'String')) returns contents of Audio1 as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function Audio1_CreateFcn(hObject, eventdata, handles)
@@ -481,9 +614,6 @@ function LocalSSTimes_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of LocalSSTimes as text
-%        str2double(get(hObject,'String')) returns contents of LocalSSTimes as a double
-
 % --- Executes on button press in LoadTimeLocal.
 function LoadTimeLocal_Callback(hObject, eventdata, handles)
 % hObject    handle to LoadTimeLocal (see GCBO)
@@ -493,16 +623,10 @@ function LoadTimeLocal_Callback(hObject, eventdata, handles)
 function GroupChoice_ButtonDownFcn(hObject, eventdata, handles)
     GraphMenu_Callback(hObject, eventdata, handles);
 
-
-
 function Audio2_Callback(hObject, eventdata, handles)
 % hObject    handle to Audio2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of Audio2 as text
-%        str2double(get(hObject,'String')) returns contents of Audio2 as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function Audio2_CreateFcn(hObject, eventdata, handles)
@@ -516,16 +640,10 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function Audio3_Callback(hObject, eventdata, handles)
 % hObject    handle to Audio3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of Audio3 as text
-%        str2double(get(hObject,'String')) returns contents of Audio3 as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function Audio3_CreateFcn(hObject, eventdata, handles)
@@ -539,16 +657,10 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function Audio4_Callback(hObject, eventdata, handles)
 % hObject    handle to Audio4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of Audio4 as text
-%        str2double(get(hObject,'String')) returns contents of Audio4 as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function Audio4_CreateFcn(hObject, eventdata, handles)
@@ -562,15 +674,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 % --- If Enable == 'on', executes on mouse press in 5 pixel border.
 % --- Otherwise, executes on mouse press in 5 pixel border or over RadioFull.
-% hObject    handle to RadioFull (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 function RadioFull_ButtonDownFcn(hObject, eventdata, handles)
-    
-
 
 % --- If Enable == 'on', executes on mouse press in 5 pixel border.
 % --- Otherwise, executes on mouse press in 5 pixel border or over RadioSelect.
@@ -579,7 +685,6 @@ function RadioFull_ButtonDownFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 function RadioSelect_ButtonDownFcn(hObject, eventdata, handles)
     GraphMenu_Callback(hObject, eventdata, handles);
-
 
 % --- Executes when selected object is changed in GroupChoice.
 function GroupChoice_SelectionChangedFcn(hObject, eventdata, handles)
@@ -593,26 +698,16 @@ function axes4_CreateFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-% Hint: place code in OpeningFcn to populate axes4
-
-
-
 % --- Executes on button press in NextCall.
 function NextCall_Callback(hObject, eventdata, handles)
 % hObject    handle to NextCall (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-
-
 function SoundFile_Callback(hObject, eventdata, handles)
 % hObject    handle to SoundFile (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of SoundFile as text
-%        str2double(get(hObject,'String')) returns contents of SoundFile as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function SoundFile_CreateFcn(hObject, eventdata, handles)
@@ -626,15 +721,10 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 function OutputFile_Callback(hObject, eventdata, handles)
 % hObject    handle to OutputFile (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of OutputFile as text
-%        str2double(get(hObject,'String')) returns contents of OutputFile as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function OutputFile_CreateFcn(hObject, eventdata, handles)
