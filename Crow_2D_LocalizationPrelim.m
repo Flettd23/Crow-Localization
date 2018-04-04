@@ -26,8 +26,8 @@ hyp_plot = hypplot;
 
 
 receivernum = 4; % Number of Recorders
-x_r(1) = 0; x_r(2) = 3; x_r(3) = 0.0; x_r(4) = 3;
-y_r(1) = 0; y_r(2) = 0.0; y_r(3) = 3; y_r(4) = 3;
+x_r(1) = 0; x_r(2) = 6; x_r(3) = 0.0; x_r(4) = 6;
+y_r(1) = 0; y_r(2) = 0.0; y_r(3) = 6; y_r(4) = 6;
 z_r(1:receivernum) = 0;
 
 
@@ -38,15 +38,14 @@ z_r(1:receivernum) = 0;
 
 t_s = ts; %Start time
 t_e = te; %End time
-t_s3 = t_s - 0.01;
-t_e3 = t_e - 0.01;
+
 Fmin = 500; %Minimum Frequency
 Fmax = 2500; %Maximum Frequency
 
-[data11,Fs] = audioread(sfile1); data1 = data11(t_s*Fs:t_e*Fs,channel);
-[data22,Fs] = audioread(sfile2);data2 = data22(t_s*Fs:t_e*Fs,channel);
-[data33,Fs] = audioread(sfile3); data3 = data33(t_s*Fs:t_e*Fs,channel);
-[data44,Fs] = audioread(sfile4); data4 = data44(t_s*Fs:t_e*Fs,channel);
+[data11,Fs] = audioread(sfile1); data1 = data11(t_s*Fs:t_e*Fs,1);
+[data22,Fs] = audioread(sfile2);data2 = data22(t_s*Fs:t_e*Fs,2);
+[data33,Fs] = audioread(sfile3); data3 = data33(t_s*Fs:t_e*Fs,2);
+[data44,Fs] = audioread(sfile4); data4 = data44(t_s*Fs:t_e*Fs,1);
 
 % n = 7;
 % beginFreq = Fmin/(Fs/2);

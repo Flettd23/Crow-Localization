@@ -1,4 +1,4 @@
-function [hypMat, intMat, realloc] = Crow_2D_Localization(sfile1, sfile2, sfile3, sfile4, ts, te, channel, hypplot,time_mat)
+ function [hypMat, intMat, realloc] = Crow_2D_Localization(sfile1, sfile2, sfile3, sfile4, ts, te, channel, hypplot,time_mat)
 % clear all;
 % close all;
 hyp_plot = hypplot;
@@ -27,8 +27,8 @@ hyp_plot = hypplot;
 
 
 receivernum = 4; % Number of Recorders
-x_r(1) = 0; x_r(2) = 3; x_r(3) = 0.0; x_r(4) = 3;
-y_r(1) = 0; y_r(2) = 0.0; y_r(3) = 3; y_r(4) = 3;
+x_r(1) = 0; x_r(2) = 6; x_r(3) = 0.0; x_r(4) = 6;
+y_r(1) = 0; y_r(2) = 0.0; y_r(3) = 6; y_r(4) = 6;
 z_r(1:receivernum) = 0;
 
 
@@ -39,15 +39,15 @@ z_r(1:receivernum) = 0;
 
 t_s = ts; %Start time
 t_e = te; %End time
-t_s3 = t_s - 0.01;
-t_e3 = t_e - 0.01;
+t_s3 = t_s;
+t_e3 = t_e;
 Fmin = 500; %Minimum Frequency
 Fmax = 2500; %Maximum Frequency
 
-[data11,Fs] = audioread(sfile1); data1 = data11(t_s*Fs:t_e*Fs,channel);
-[data22,Fs] = audioread(sfile2);data2 = data22(t_s*Fs:t_e*Fs,channel);
-[data33,Fs] = audioread(sfile3); data3 = data33(t_s*Fs:t_e*Fs,channel);
-[data44,Fs] = audioread(sfile4); data4 = data44(t_s*Fs:t_e*Fs,channel);
+[data11,Fs] = audioread(sfile1); data1 = data11(t_s*Fs:t_e*Fs,1);
+[data22,Fs] = audioread(sfile2);data2 = data22(t_s*Fs:t_e*Fs,2);
+[data33,Fs] = audioread(sfile3); data3 = data33(t_s*Fs:t_e*Fs,2);
+[data44,Fs] = audioread(sfile4); data4 = data44(t_s*Fs:t_e*Fs,1);
 
 % n = 7;
 % beginFreq = Fmin/(Fs/2);
@@ -433,6 +433,8 @@ hypMat = [h_12(1,:); h_12(2,:); h_13(1,:); h_13(2,:); h_14(1,:); h_14(2,:);...
 %     plot (qmin2434(1), qmin2434(2),'dk','MarkerFaceColor','r','markersize',11,'LineWidth',1);
 
 IntersectionList = [0 0 0 0 0 0 0 0 0 0 0 0 0];
+intMat = [qmin1213; qmin1214; qmin1223; qmin1224; qmin1314; qmin1323; qmin1334;...
+    qmin1423; qmin1424; qmin1434; qmin2324; qmin2334; qmin2434];
     
     %------------------CALCULATION OF PRELIMINARY LOCATION----------------------%
     %   The preliminary calculation is calculated by taking the mean
@@ -451,22 +453,22 @@ IntersectionList = [0 0 0 0 0 0 0 0 0 0 0 0 0];
     if (prepreloc(1) >= Space_x/2) && (prepreloc(2) >= Space_y/2)
         standDevX = std((meanmaker(prexmatrix)),1);
         standDevY = std((meanmaker(preymatrix)),1);
-        callout = 'region 4'   %%for debugging
+%         callout = 'region 4'   %%for debugging
     end
     if (prepreloc(1) >= Space_x/2) && (prepreloc(2) <= Space_y/2)
             standDevX = std((meanmaker(prexmatrix)),1);
             standDevY = -1*std((meanmaker(preymatrix)),1);
-        callout = 'region 2'  %%for debugging
+%         callout = 'region 2'  %%for debugging
     end
     if (prepreloc(1) < Space_x/2) && (prepreloc(2) < Space_y/2)
             standDevX = -1*std((meanmaker(prexmatrix)),1);
             standDevY = -1*std((meanmaker(preymatrix)),1);
-        callout = 'region 1'  %%for debugging
+%         callout = 'region 1'  %%for debugging
     end
     if (prepreloc(1) < Space_x/2) && (prepreloc(2) > Space_y/2)
             standDevX = -1*std((meanmaker(prexmatrix)),1);
             standDevY = std((meanmaker(preymatrix)),1);
-        callout = 'region 3'  %%for debugging
+%         callout = 'region 3'  %%for debugging
     end
   
             
@@ -547,7 +549,7 @@ end
 %   grid (through error analysis). It is then plotted as a blue diamond. 
 
 realloc = [0,0];
-intMat = [0;0];
+% intMat = [0;0];
 
 
 if (Space == 1)
@@ -577,7 +579,11 @@ if (Space == 1)
     end
   
     realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
-    intMat = [rexmatrix; reymatrix];
+    for (i = 1:length(IntersectionList))
+    if (IntersectionList(i) == 0)
+        intMat(i,:) = 0;
+    end
+    end
 end
 
 if (Space == 2)
@@ -607,7 +613,11 @@ if (Space == 2)
     end
   
     realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
-    intMat = [rexmatrix; reymatrix];
+    for (i = 1:length(IntersectionList))
+        if (IntersectionList(i) == 0)
+        intMat(i,:) = 0;
+        end
+    end
 end
 
 if (Space == 3)
@@ -637,7 +647,11 @@ if (Space == 3)
     end
   
     realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
-    intMat = [rexmatrix; reymatrix];
+    for (i = 1:length(IntersectionList))
+        if (IntersectionList(i) == 0)
+        intMat(i,:) = 0;
+        end
+    end
 end
 
 if (Space == 4)
@@ -667,12 +681,20 @@ if (Space == 4)
     end
   
     realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
-    intMat = [rexmatrix; reymatrix];
+    for (i = 1:length(IntersectionList))
+        if (IntersectionList(i) == 0)
+        intMat(i,:) = 0;
+        end
+    end
 end
 
 if (Space == 5)
     realloc = preloc;
-    intMat = [prexmatrix; preymatrix];
+    for (i = 1:length(IntersectionList))
+        if (IntersectionList(i) == 0)
+        intMat(i,:) = 0;
+        end
+    end
 end
 
 if (Space == 6)
@@ -702,7 +724,11 @@ if (Space == 6)
     end
   
     realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
-    intMat = [rexmatrix; reymatrix];
+    for (i = 1:length(IntersectionList))
+        if (IntersectionList(i) == 0)
+        intMat(i,:) = 0;
+        end
+    end
 end
 
 if (Space == 7)
@@ -732,7 +758,11 @@ if (Space == 7)
     end
   
     realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
-    intMat = [rexmatrix; reymatrix];
+    for (i = 1:length(IntersectionList))
+        if (IntersectionList(i) == 0)
+        intMat(i,:) = 0;
+        end
+    end
 end
 
 if (Space == 8)
@@ -762,7 +792,11 @@ if (Space == 8)
     end
    
     realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
-    intMat = [rexmatrix; reymatrix];
+    for (i = 1:length(IntersectionList))
+        if (IntersectionList(i) == 0)
+        intMat(i,:) = 0;
+        end
+    end
 end
 
 if (Space == 9)
@@ -792,7 +826,11 @@ if (Space == 9)
     end
   
     realloc = [prerealloc(1) + standDevX,prerealloc(2) + standDevY];
-    intMat = [rexmatrix; reymatrix];
+    for (i = 1:length(IntersectionList))
+        if (IntersectionList(i) == 0)
+        intMat(i,:) = 0;
+        end
+    end
 end
 
 
