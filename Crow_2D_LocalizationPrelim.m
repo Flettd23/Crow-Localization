@@ -1,4 +1,4 @@
-function [TimeMat] = Crow_2D_LocalizationPrelim(sfile1, sfile2, sfile3, sfile4, ts, te, channel, hypplot)
+function [TimeMat] = Crow_2D_LocalizationPrelim(sfile1, sfile2, sfile3, sfile4, ts, te, channel, hypplot, elementspacing)
 % clear all;
 % close all;
 hyp_plot = hypplot;
@@ -26,8 +26,8 @@ hyp_plot = hypplot;
 
 
 receivernum = 4; % Number of Recorders
-x_r(1) = 0; x_r(2) = 6; x_r(3) = 0.0; x_r(4) = 6;
-y_r(1) = 0; y_r(2) = 0.0; y_r(3) = 6; y_r(4) = 6;
+x_r(1) = 0; x_r(2) = elementspacing; x_r(3) = 0.0; x_r(4) = elementspacing;
+y_r(1) = 0; y_r(2) = 0.0; y_r(3) = elementspacing; y_r(4) = elementspacing;
 z_r(1:receivernum) = 0;
 
 
@@ -38,25 +38,29 @@ z_r(1:receivernum) = 0;
 
 t_s = ts; %Start time
 t_e = te; %End time
-
 Fmin = 500; %Minimum Frequency
 Fmax = 2500; %Maximum Frequency
 
-[data11,Fs] = audioread(sfile1); data1 = data11(t_s*Fs:t_e*Fs,1);
-[data22,Fs] = audioread(sfile2);data2 = data22(t_s*Fs:t_e*Fs,2);
-[data33,Fs] = audioread(sfile3); data3 = data33(t_s*Fs:t_e*Fs,2);
-[data44,Fs] = audioread(sfile4); data4 = data44(t_s*Fs:t_e*Fs,1);
+[data11,Fs] = audioread(sfile1); data11_av = (data11(:,1)+data11(:,2))/2;
+[data22,Fs] = audioread(sfile2); data22_av = (data22(:,1)+data22(:,2))/2;
+[data33,Fs] = audioread(sfile3); data33_av = (data33(:,1)+data33(:,2))/2;
+[data44,Fs] = audioread(sfile4); data44_av = (data44(:,1)+data44(:,2))/2;
 
 % n = 7;
 % beginFreq = Fmin/(Fs/2);
 % endFreq = Fmax/(Fs/2);
 % [b,a] = butter(n,[beginFreq, endFreq], 'bandpass');
-% 
+
 % %Filter Signals%
-% data1 = filter(b, a, data1);
-% data2 = filter(b, a, data2);
-% data3 = filter(b, a, data3);
-% data4 = filter(b, a, data4);
+% data11_fil = filter(b, a, data11_av);
+% data22_fil = filter(b, a, data22_av);
+% data33_fil = filter(b, a, data33_av);
+% data44_fil = filter(b, a, data44_av);
+
+data1 = data11_av(t_s*Fs:t_e*Fs);
+data2 = data22_av(t_s*Fs:t_e*Fs);
+data3 = data33_av(t_s*Fs:t_e*Fs);
+data4 = data44_av(t_s*Fs:t_e*Fs);
 
 
 L = length(data1); % length of signal in time

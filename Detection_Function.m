@@ -22,11 +22,12 @@ soundData(:,1) = t;
 soundDatafft = fft(wave(:,1),NFFT);
 
 %Plotting both channels pre-filtering
-figure (1)
-          plot(t,wave(:,2))
-          title('PreFiltered Channel One');
-          ylabel('Amplitude');
-          xlabel('Time (in seconds)');
+% 
+% figure (1)
+%           plot(t,wave(:,2))
+%           title('PreFiltered Channel One');
+%           ylabel('Amplitude');
+%           xlabel('Time (in seconds)');
 
                
 %Filtering out anything below 500 hz and above 2000 hz (subject to change)
@@ -63,7 +64,7 @@ Total = L-steps;
 % progressbar % Create figure and set starting time 
 for i = 1:Total
     energyData(i) = sum(wave2(i:i+steps,2).^2);
-%     progressbar(i/Total)
+    progressbar(i/Total)
 end
 %% ***************** Detecting and Saving Possible Calls*******************
 %Detecting Peaks and the time they appear
@@ -101,32 +102,36 @@ for i = 1:L
     end
 end
 
-
-
-%Plotting Energy vs Time
-figure('name','Energy of Filtered Wave','numbertitle','off')
-plot(1:L,energyData,'k');
-          xlabel('Time');
-          ylabel('Energy');
-          title('Energy vs Time');
- hold on
-
- 
- for i = 1:length(SoundDetect)
+for i = 1:length(SoundDetect)
      if ((SoundDetect(i,1) ~= 0) && (SoundDetect(i,2) ~= 0))
-          plot(SoundDetect(i,1),SoundDetect(i,2),'b*','LineWidth',1)
-          plot(Start_Stop(i,1):SoundDetect(i,1),energyData(Start_Stop(i,1):SoundDetect(i,1)),'b','LineWidth',1)
           starIdx.add([SoundDetect(i,1) SoundDetect(i,2)]);
      end
- end
- 
- %Changing from samples to seconds
-    Start_Stop = Start_Stop/fs;
+end
 
+%Changing from samples to seconds
+    Start_Stop = Start_Stop/fs; 
 
-line([1 L],[minEnergy minEnergy],'LineWidth',1)
-ylim([0 500])
- hold off
+%Plotting Energy vs Time
+% figure('name','Energy of Filtered Wave','numbertitle','off')
+% plot(1:L,energyData,'k');
+%           xlabel('Time');
+%           ylabel('Energy');
+%           title('Energy vs Time');
+%  hold on
+% 
+%  
+%  for i = 1:length(SoundDetect)
+%      if ((SoundDetect(i,1) ~= 0) && (SoundDetect(i,2) ~= 0))
+%           %plot(SoundDetect(i,1),SoundDetect(i,2),'b*','LineWidth',1)
+%           %plot(Start_Stop(i,1):SoundDetect(i,1),energyData(Start_Stop(i,1):SoundDetect(i,1)),'b','LineWidth',1)
+%           starIdx.add([SoundDetect(i,1) SoundDetect(i,2)]);
+%      end
+%  end
+% 
+% 
+% line([1 L],[minEnergy minEnergy],'LineWidth',1)
+% ylim([0 500])
+%  hold off
  
 
 %% Creating array and table for CSV storage 
@@ -142,7 +147,7 @@ for i = 1:(dynArray.size()-1)
     times = dynArray.get(i);
     MasterArray(i,1) = times(1);
     MasterArray(i,2) = times(2);
-    stars = starIdx.get(i)
+    stars = starIdx.get(i);
     MasterArray(i,10) = stars(1);
     MasterArray(i,11) = stars(2);
 end

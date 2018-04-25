@@ -1,4 +1,4 @@
- function [hypMat, intMat, realloc] = Crow_2D_Localization(sfile1, sfile2, sfile3, sfile4, ts, te, channel, hypplot,time_mat)
+ function [hypMat, intMat, realloc] = Crow_2D_Localization(sfile1, sfile2, sfile3, sfile4, ts, te, channel, hypplot,time_mat, elementspacing)
 % clear all;
 % close all;
 hyp_plot = hypplot;
@@ -27,8 +27,8 @@ hyp_plot = hypplot;
 
 
 receivernum = 4; % Number of Recorders
-x_r(1) = 0; x_r(2) = 6; x_r(3) = 0.0; x_r(4) = 6;
-y_r(1) = 0; y_r(2) = 0.0; y_r(3) = 6; y_r(4) = 6;
+x_r(1) = 0; x_r(2) = elementspacing; x_r(3) = 0.0; x_r(4) = elementspacing;
+y_r(1) = 0; y_r(2) = 0.0; y_r(3) = elementspacing; y_r(4) = elementspacing;
 z_r(1:receivernum) = 0;
 
 
@@ -39,27 +39,29 @@ z_r(1:receivernum) = 0;
 
 t_s = ts; %Start time
 t_e = te; %End time
-t_s3 = t_s;
-t_e3 = t_e;
 Fmin = 500; %Minimum Frequency
-Fmax = 2500; %Maximum Frequency
+Fmax = 3000; %Maximum Frequency
 
-[data11,Fs] = audioread(sfile1); data1 = data11(t_s*Fs:t_e*Fs,1);
-[data22,Fs] = audioread(sfile2);data2 = data22(t_s*Fs:t_e*Fs,2);
-[data33,Fs] = audioread(sfile3); data3 = data33(t_s*Fs:t_e*Fs,2);
-[data44,Fs] = audioread(sfile4); data4 = data44(t_s*Fs:t_e*Fs,1);
+[data11,Fs] = audioread(sfile1); data11_av = (data11(:,1)+data11(:,2))/2;
+[data22,Fs] = audioread(sfile2); data22_av = (data22(:,1)+data22(:,2))/2;
+[data33,Fs] = audioread(sfile3); data33_av = (data33(:,1)+data33(:,2))/2;
+[data44,Fs] = audioread(sfile4); data44_av = (data44(:,1)+data44(:,2))/2;
 
 % n = 7;
 % beginFreq = Fmin/(Fs/2);
 % endFreq = Fmax/(Fs/2);
 % [b,a] = butter(n,[beginFreq, endFreq], 'bandpass');
-% 
-% %Filter Signals%
-% data1 = filter(b, a, data1);
-% data2 = filter(b, a, data2);
-% data3 = filter(b, a, data3);
-% data4 = filter(b, a, data4);
 
+% %Filter Signals%
+% data11_fil = filter(b, a, data11_av);
+% data22_fil = filter(b, a, data22_av);
+% data33_fil = filter(b, a, data33_av);
+% data44_fil = filter(b, a, data44_av);
+
+data1 = data11_av(t_s*Fs:t_e*Fs);
+data2 = data22_av(t_s*Fs:t_e*Fs);
+data3 = data33_av(t_s*Fs:t_e*Fs);
+data4 = data44_av(t_s*Fs:t_e*Fs);
 
 L = length(data1); % length of signal in time
 c = 343; % speed of sound (m/s)
@@ -185,7 +187,13 @@ if max_ind_23 >= L
 else
     t_max_23 = -t(L-max_ind_23+1);
 end   
-
+t_max_12
+t_max_13
+t_max_14
+t_max_34
+t_max_24
+t_max_23
+time_mat
 t_max_12 = t_max_12 - time_mat(1);
 t_max_13 = t_max_13 - time_mat(2);
 t_max_14 = t_max_14 - time_mat(3);
@@ -473,7 +481,8 @@ intMat = [qmin1213; qmin1214; qmin1223; qmin1224; qmin1314; qmin1323; qmin1334;.
   
             
     
-    preloc = [prepreloc(1) + standDevX, prepreloc(2) + standDevY];
+%    preloc = [prepreloc(1) + standDevX, prepreloc(2) + standDevY];
+    preloc = prepreloc;
 %     plot (preloc(1),
 %     preloc(2),'dk','MarkerFaceColor','m','markersize',11,'LineWidth',1);
   
@@ -523,7 +532,7 @@ if (preloc(1) > Space_x/3) && (preloc(1) < 2*Space_x/3) && (preloc(2) > Space_y/
     IntersectionList = [1 1 1 1 1 1 1 1 1 1 1 1 1];
 end
 %Section 6
-if (2*Space_x/3 < preloc(1)) && (preloc(2) > Space_y/3) && (preloc(2) < 2*Space_y/3)
+if (preloc(1) > 2*Space_x/3) && (preloc(2) > Space_y/3) && (preloc(2) < 2*Space_y/3)
     Space = 6;
     IntersectionList = [0 0 0 0 1 1 0 1 1 0 1 0 0];
 end
@@ -832,8 +841,11 @@ if (Space == 9)
         end
     end
 end
-
-
+    Space
+    prepreloc
+    preloc
+%     prerealloc
+    realloc
 %     plot (realloc(1), realloc(2),'dk','MarkerFaceColor','c','markersize',11,'LineWidth',1);
     
     %% plotting the hyperbolas
